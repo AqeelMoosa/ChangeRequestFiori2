@@ -1,0 +1,42 @@
+<mvc:View controllerName="shitchange.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m">
+    <Page id="page" title="{i18n>title}">
+        <content>
+            <Table items="{/cust_EmployeeShiftChange}">
+                <columns>
+
+                    <Column>
+                        <Label text="Employee Number"></Label>
+                    </Column>
+
+                    <Column>
+                        <Label text="Position Number"></Label>
+                    </Column>
+
+                    <Column>
+                        <Label text="Department Number"></Label>
+                    </Column>
+
+                    <Column>
+                        <Label text="Start Date"></Label>
+                    </Column>
+
+
+                </columns>
+                <items>
+                    <ColumnListItem type="Navigation" press="OnDetails">
+                        <cells>
+                            <Text text="{cust_EmployeeId}" id="emp"></Text>
+                            <Text text="{cust_PositionId}" id="pos"></Text>
+                            <Text text="{cust_DepartmentId}" id="dep"></Text>
+                            <Text text="{cust_StartDate}" id="start"></Text>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            
+            </Table>
+        
+        </content>
+    </Page>
+</mvc:View>

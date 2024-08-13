@@ -1,0 +1,26 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+<QuickView
+		id="quickView">
+		<QuickViewPage id="_IDGenQuickViewPage1"
+			title="test"
+			description="test"
+			class="ctest">
+
+			<QuickViewGroup id="_IDGenQuickViewGroup1" heading="Location Details" >
+				<QuickViewGroupElement id="_IDGenQuickViewGroupElement1"
+                    label="Address"
+                    value="test"/>			
+            </QuickViewGroup>
+
+            <QuickViewGroup id="_IDGenQuickViewGroup2" heading="Contact Details" >
+				<QuickViewGroupElement id="_IDGenQuickViewGroupElement2"
+                    label="Phone"
+					value="test"
+                    type="mobile"/>
+            	<QuickViewGroupElement id="_IDGenQuickViewGroupElement3"
+                    label="Fax"
+					value="test"/>
+			</QuickViewGroup>    
+		</QuickViewPage>
+	</QuickView>
+</core:FragmentDefinition>
