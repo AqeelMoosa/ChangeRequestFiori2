@@ -56,14 +56,20 @@ sap.ui.define([
         },
 
 
+        jobInfo: function() {
+            
+        },
+
+
 
         onEdit: function() {
 
             var oModel = this.getOwnerComponent().getModel();
             var dep = this.getView().byId("depart").getValue();
             let p = this.getView().getBindingContext()
-            
+
             var pos = this.getView().byId("txtPositionId").getValue()
+            var date = this.getView().byId("txtStartDate").getValue
 
             oModel.read("/Position", {
                 success: (oData) => {
@@ -74,7 +80,7 @@ sap.ui.define([
                 oModel.metadataLoaded().then(function(){
                     var payload = {
                         "__metadata": {
-                            "uri": "Position(code='50014299',effectiveStartDate=datetime'2024-08-14T00:00:00')",
+                            "uri": "Position(code='"+ pos +"',effectiveStartDate=datetime'2024-08-14T00:00:00')",
                             "type": "SFOData.Position"
                         },
                         
