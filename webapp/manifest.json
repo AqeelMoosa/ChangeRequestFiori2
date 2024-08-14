@@ -1,7 +1,7 @@
 {
   "_version": "1.59.0",
   "sap.app": {
-    "id": "shitchange",
+    "id": "shiftchange",
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
@@ -66,7 +66,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "shitchange.i18n.i18n"
+          "bundleName": "shiftchange.i18n.i18n"
         }
       },
       "": {
@@ -87,7 +87,7 @@
         "routerClass": "sap.m.routing.Router",
         "viewType": "XML",
         "async": true,
-        "viewPath": "shitchange.view",
+        "viewPath": "shiftchange.view",
         "controlAggregation": "pages",
         "controlId": "app",
         "clearControlAggregation": false
@@ -124,7 +124,7 @@
       }
     },
     "rootView": {
-      "viewName": "shitchange.view.App",
+      "viewName": "shiftchange.view.App",
       "type": "XML",
       "async": true,
       "id": "App"

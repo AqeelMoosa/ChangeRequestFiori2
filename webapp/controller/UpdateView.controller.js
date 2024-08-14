@@ -3,18 +3,23 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/library",
     "sap/ui/core/Fragment",
-], function(Controller, JSONModel, mobileLibrary, Fragment) {
+    "./BaseController"
+], function(Controller, JSONModel, mobileLibrary, Fragment, BaseController) {
     "use strict";
 
-    return Controller.extend("shitchange.controller.UpdateView", {
+    return BaseController.extend("shiftchange.controller.UpdateView", {
         onInit: function() {
-            var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-          // oRouter.getRoute("update").attachPatternMatched(this._onObjectMatched, this);
-         // this.anything()
+            
+            // var oModel = new JSONModel("Position")
+            // this.getView().setModel(oModel)
+          //var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+          //oRouter.getRoute("update").attachPatternMatched(this._onObjectMatched, this);
+
+          //this.anything()
 
           this.getRouter().getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
 
-          this.getOwnerComponent().getModel().metadataLoaded().then(this._onMetadataLoaded.bind(this));
+          //this.getOwnerComponent().getModel().metadataLoaded().then(this._onMetadataLoaded.bind(this));
            
         },
         
@@ -52,40 +57,85 @@ sap.ui.define([
 
 
 
+        onEdit: function() {
+
+            var oModel = this.getOwnerComponent().getModel();
+            var dep = this.getView().byId("depart").getValue();
+            let p = this.getView().getBindingContext()
+            
+            var pos = this.getView().byId("txtPositionId").getValue()
+
+            oModel.read("/Position", {
+                success: (oData) => {
+                    console.log(oData.results);
+                }
+            }),
+
+                oModel.metadataLoaded().then(function(){
+                    var payload = {
+                        "__metadata": {
+                            "uri": "Position(code='50014299',effectiveStartDate=datetime'2024-08-14T00:00:00')",
+                            "type": "SFOData.Position"
+                        },
+                        
+                        "department": dep
+                        
+                    };
+            
+                    oModel.create("/upsert", payload, {
+                        success: function()
+                        {
+                            sap.m.MessageBox.show("Updated successfully!", {
+                              icon: sap.m.MessageBox.Icon.SUCCESS,
+                              title: "Info!"
+                          });
+                     },
+                    })
+                })
+
+
+        },
+
+
 onPress: function(){
 
 
     var oModel = this.getOwnerComponent().getModel();
-   var oEmpId = this.getView().getBindingContext().getProperty("cust_EmployeeId")
+  // var oEmpId = this.getView().getBindingContext().getProperty("cust_EmployeeId")
 
-var sUrl = window.location.href;
-//    var index = sUrl.indexOf("update/");
-//    var sEmpId = sUrl.substring(index + "update/".length)
+    var sUrl = window.location.href;
+var index = sUrl.indexOf("update/");
+var sEmpId = sUrl.substring(index + "update/".length)
 
 //    How do i get these line to read from the position Entity?
-//    var dep = this.getView().getBindingContext().getProperty("Position/department")
+      //var dep = this.byId("txtDepartmentId").getValue();
 //    var title = this.getView().getBindingContext().getProperty("Position/positionTitle")
+var dep = this.byId("depart").getText();
 
 
-   oModel.read("/Position", {
+oModel.read("/Position", {
     success: (oData) => {
+            var oCode = this.getView.getBindingContext.getProperty("code")
         console.log(oData.results);
-    }
+    },
+
+    
 });
 
-   
+
+
+
    
 
-//     oModel.metadataLoaded().then(function(){
+// oModel.metadataLoaded().then(function(){
 //         var payload = {
 
 //             "__metadata": {
-//                 "uri": "https://apisalesdemo2.successfactors.com/odata/v2/Position(code='50014299',effectiveStartDate=datetime'2024-08-14T00:00:00')",
-//                 "type": "SFOData.Position"
+//                 "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
+//                 "type": "SFOData.cust_EmployeeShiftChange"
 //             },
 
-//             "Position/positionTitle":"Total Rewards Consultant III1112" ,
-//             "Position/department": "50100004"
+            
 
 //         };
 
@@ -115,8 +165,8 @@ _onRouteMatched1: function (oEvent) {
     var sUrl = window.location.href;
     var index = sUrl.indexOf("update/");
     var sEmpId = sUrl.substring(index + "update/".length);
-    var oSelectedItem = oEvent.getSource();
-    var oContext = oSelectedItem.getBindingContext();
+    // var oSelectedItem = oEvent.getSource();
+    // var oContext = oSelectedItem.getBindingContext();
     console.log(oEvent)
    
 
@@ -126,11 +176,19 @@ _onRouteMatched1: function (oEvent) {
         success: (oData) => {
             this.byId("txtEmpId").setText(oData.cust_EmployeeId);
             this.byId("txtPositionId").setText(oData.cust_PositionId);
-            this.byId("txtDepartmentId").setValue(oData.cust_DepartmentId);
+            this.byId("txtDepartmentId").setText(oData.cust_DepartmentId);
             this.byId("txtStartDate").setText(oData.cust_StartDate);
         },
         error: (oError) => console.error("Error", oError)
     });
+
+    // oDataModel.read(`/Position('${oCode}')`, {
+    //     success: (oData) => {
+    //         this.byId("txtPosCode").setText(oData.code);
+    //         console.log(oData)
+    //     },
+    //     error: (oError) => console.error("Error", oError)
+    // });
 },
 
 
@@ -145,23 +203,23 @@ _onRouteMatched1: function (oEvent) {
             },
 
 
-            getUserId: function () {
-                var sQuery = window.location.search;
-                var oParams = {};
-                sQuery.replace(/^\?/, '').split('&').forEach(function(param) {
-                    var aParam = param.split('=');
-                    oParams[aParam[0]] = decodeURIComponent(aParam[1]);
-                });
+            // getUserId: function () {
+            //     var sQuery = window.location.search;
+            //     var oParams = {};
+            //     sQuery.replace(/^\?/, '').split('&').forEach(function(param) {
+            //         var aParam = param.split('=');
+            //         oParams[aParam[0]] = decodeURIComponent(aParam[1]);
+            //     });
                 
-                return oParams["EmpId"] || null;
-            },
+            //     return oParams["EmpId"] || null;
+            // },
 
-            anything: function () {
+            // anything: function () {
 
-                var sUserId = this.getUserId();
-                this.byId("empId").setText(`${sUserId}`);
-                console.log(sUserId)
-            }
+            //     var sUserId = this.getUserId();
+            //     this.byId("empId").setText(`${sUserId}`);
+            //     console.log(sUserId)
+            // }
             
     
 

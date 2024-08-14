@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Start shit_change",
+      "name": "Start shift_change",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npx",
@@ -16,7 +16,7 @@
       ],
       "args": [
         "--open",
-        "test/flpSandbox.html#shitchange-display"
+        "test/flpSandbox.html#shiftchange-display"
       ],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart",
@@ -25,11 +25,11 @@
       "env": {
         "DEBUG": "--inspect",
         "FIORI_TOOLS_URL_PARAMS": "sap-ui-xx-viewCache=false",
-        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shit_change\"}"
+        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shift_change\"}"
       }
     },
     {
-      "name": "Start shit_change Mock",
+      "name": "Start shift_change Mock",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -45,7 +45,7 @@
         "--config",
         "./ui5-mock.yaml",
         "--open",
-        "test/flpSandbox.html#shitchange-display"
+        "test/flpSandbox.html#shiftchange-display"
       ],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart",
@@ -53,11 +53,11 @@
       "port": 9229,
       "env": {
         "FIORI_TOOLS_URL_PARAMS": "sap-ui-xx-viewCache=false",
-        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shit_change\"}"
+        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shift_change\"}"
       }
     },
     {
-      "name": "Start shit_change Local",
+      "name": "Start shift_change Local",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}",
@@ -73,7 +73,7 @@
         "--config",
         "./ui5-local.yaml",
         "--open",
-        "test/flpSandbox.html#shitchange-display"
+        "test/flpSandbox.html#shiftchange-display"
       ],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart",
@@ -81,7 +81,7 @@
       "port": 9229,
       "env": {
         "FIORI_TOOLS_URL_PARAMS": "sap-ui-xx-viewCache=false",
-        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shit_change\"}"
+        "run.config": "{\"handlerId\":\"fiori_tools\",\"runnableId\":\"/home/user/projects/shift_change\"}"
       }
     }
   ]

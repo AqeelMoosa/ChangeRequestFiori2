@@ -6,7 +6,7 @@ sap.ui.define(
     function(BaseController, UIComponent) {
       "use strict";
   
-      return BaseController.extend("shitchange.controller.App", {
+      return BaseController.extend("shiftchange.controller.App", {
 
     
       });

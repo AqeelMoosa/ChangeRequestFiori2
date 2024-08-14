@@ -16,7 +16,7 @@ sap.ui.define([
 function (Controller, JSONModel, IconPool, Dialog, Button, mobileLibrary, List, StandardListItem, Text, Fragment, Device, History, UIComponent) {
 	"use strict";
 
-    return Controller.extend("shitchange.controller.View1", {
+    return Controller.extend("shiftchange.controller.View1", {
         onInit: function () {
                 this.onReadEmpData();
 				
@@ -53,69 +53,6 @@ function (Controller, JSONModel, IconPool, Dialog, Button, mobileLibrary, List, 
                 empId: sEmpId
             });
         },
-
-
-        openQuickView: function (oEvent, oModel) {
-        	var oEmpID = oEvent.getSource(),
-                oView = this.getView(),
-                oContext = oView.getBindingContext();
-            
-               //Load fragment and add as dependent of this(Detail) view
-		if (!this._pQuickView) {
-			this._pQuickView = Fragment.load({
-				id: oView.getId(),
-				name:"shit_change.fragments.EmployeeDetail",
-				controller: this
-			}).then(function (oQuickView) {
-				oView.addDependent(oQuickView);
-				return oQuickView;
-			});
-		}
-		this._pQuickView.then(function (oQuickView){     
-                //Set path to Customer         
-                var sPath = `${oContext.getPath()}`;
-                //Bind path and model to Quickview
-                oQuickView.bindElement({ path: sPath, model: oModel.name });
-                //Set CustID field as the source so that popup launches it 
-		oQuickView.openBy(oEmpID);
-			});
-        },
-
-
-
-        onDefaultDialogPress: function () {
-			if (!this.oDefaultDialog) {
-				this.oDefaultDialog = new Dialog({
-					title: "Edit Position Number",
-					content: new List({
-						items: {
-							path: "/cust_EmployeeShiftChange",
-							template: new StandardListItem({
-								title: "{cust_PositionId}",
-							})
-						}
-					}),
-					beginButton: new Button({
-						text: "OK",
-						press: function () {
-							this.oDefaultDialog.close();
-						}.bind(this)
-					}),
-					endButton: new Button({
-						text: "Close",
-						press: function () {
-							this.oDefaultDialog.close();
-						}.bind(this)
-					})
-				});
-
-				// to get access to the controller's model
-				this.getView().addDependent(this.oDefaultDialog);
-			}
-
-			this.oDefaultDialog.open();
-		},
-
 
     });
 });

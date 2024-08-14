@@ -1,12 +1,21 @@
-<mvc:View controllerName="shitchange.controller.UpdateView"
+<mvc:View controllerName="shiftchange.controller.UpdateView"
     xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
     xmlns="sap.m"
+    xmlns:core="sap.ui.core"
     xmlns:smartForm="sap.ui.comp.smartform"
 	xmlns:smartField="sap.ui.comp.smartfield"
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     xmlns:html="http://www.w3.org/1999/xhtml">
     <Page id="page" title="{i18n>title}">
         <content>
+
+
+        <!-- <VBox alignItems="Center" fitContainer="true" items="/Position">
+        
+        <Label text = "Position Code: "></Label>
+        <Text id="txtPosCode"></Text>
+        
+        </VBox> -->
 
 
 
@@ -17,16 +26,25 @@
                  <Label text="Position: " />
                 <Text id="txtPositionId"/>
 
-
                  <Label text="Department: " />
-                <Input id="txtDepartmentId" value="{txtDepartmentId}"/>
+                <Text id="txtDepartmentId"/>
+
+                <Label text="Department: " />
+                <Input id="depart"/>
+
+                <!-- <ComboBox
+				items="{
+					path: '/Position'
+				}">
+				<core:Item key="{department}" text="{department}" id="depart" />
+			</ComboBox> -->
 
                  <Label text="Start Date: " />
                 <Text id="txtStartDate"/>
 
                 <Button type="Accept"
 						text="Accept"
-						press="onPress"
+						press="onEdit"
 						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
 					<layoutData>
 						<FlexItemData growFactor="1" />

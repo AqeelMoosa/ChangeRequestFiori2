@@ -5,12 +5,12 @@
 sap.ui.define([
         "sap/ui/core/UIComponent",
         "sap/ui/Device",
-        "shitchange/model/models"
+        "shiftchange/model/models"
     ],
     function (UIComponent, Device, models) {
         "use strict";
 
-        return UIComponent.extend("shitchange.Component", {
+        return UIComponent.extend("shiftchange.Component", {
             metadata: {
                 manifest: "json"
             },
