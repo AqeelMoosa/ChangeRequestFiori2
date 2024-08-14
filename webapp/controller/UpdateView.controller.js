@@ -15,7 +15,7 @@ sap.ui.define([
           //var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
           //oRouter.getRoute("update").attachPatternMatched(this._onObjectMatched, this);
 
-          //this.anything()
+          this.testFunction()
 
           this.getRouter().getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
 
@@ -61,15 +61,60 @@ sap.ui.define([
         },
 
 
+        testFunction: function() {
+
+            var sUrl = window.location.href;
+            var index = sUrl.indexOf("update/");
+            var sEmpId = sUrl.substring(index + "update/".length);
+
+            const oDataModel = this.getOwnerComponent().getModel();
+
+            oDataModel.read(`/cust_EmployeeShiftChange('${sEmpId}')`, {
+                success: (oData) => {
+                   
+                    const pos =  this.byId("txtPositionId").getText(oData.cust_PositionId);
+                   
+                    //this.byId("txtStartDate").setText(oData.cust_StartDate);
+
+
+                    const numb = String(pos.match(/\((\d+)\)/));
+                        console.log(numb)
+
+                },
+                error: (oError) => console.error("Error", oError)
+            });
+
+            //var oModel = this.getOwnerComponent().getModel();
+            //var dep = this.getView().byId("depart").getValue();
+            //let p = this.getView().getBindingContext()
+
+            
+            //var date = this.getView().byId("txtStartDate").getValue()
+
+           
+
+           
+
+        },
+
+
 
         onEdit: function() {
 
+        
             var oModel = this.getOwnerComponent().getModel();
             var dep = this.getView().byId("depart").getValue();
-            let p = this.getView().getBindingContext()
+            //let p = this.getView().getBindingContext()
 
             var pos = this.getView().byId("txtPositionId").getValue()
-            var date = this.getView().byId("txtStartDate").getValue
+            var date = this.getView().byId("txtStartDate").getValue()
+
+            // const numb = pos.match(/\((\d+)\)/);
+
+            // if (numb) {
+            //     const result = numb[1];
+            //     console.log(result)
+            // }
 
             oModel.read("/Position", {
                 success: (oData) => {
@@ -80,7 +125,7 @@ sap.ui.define([
                 oModel.metadataLoaded().then(function(){
                     var payload = {
                         "__metadata": {
-                            "uri": "Position(code='"+ pos +"',effectiveStartDate=datetime'2024-08-14T00:00:00')",
+                            "uri": "Position(code='"+ result +"',effectiveStartDate='"+ date +"')",
                             "type": "SFOData.Position"
                         },
                         
@@ -110,8 +155,8 @@ onPress: function(){
   // var oEmpId = this.getView().getBindingContext().getProperty("cust_EmployeeId")
 
     var sUrl = window.location.href;
-var index = sUrl.indexOf("update/");
-var sEmpId = sUrl.substring(index + "update/".length)
+    var index = sUrl.indexOf("update/");
+    var sEmpId = sUrl.substring(index + "update/".length)
 
 //    How do i get these line to read from the position Entity?
       //var dep = this.byId("txtDepartmentId").getValue();
