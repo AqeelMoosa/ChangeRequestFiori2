@@ -26,11 +26,14 @@
                  <Label text="Position: " />
                 <Text id="txtPositionId"/>
 
-                 <Label text="Department: " />
-                <Text id="txtDepartmentId"/>
+                 <Label text="Start Date: " />
+                <Text id="txtStartDate"/>
 
+                 <!-- <Label text="Department: " />
+                <Text id="txtDepartmentId"/> -->
+<!-- 
                 <Label text="Event Change:"/>
-                <Input id="event"></Input>
+                <Input id="event"></Input> -->
 
                 <Label text="Department: " />
                 <Input id="inDepartmentId"/>
@@ -42,12 +45,11 @@
 				<core:Item key="{department}" text="{department}" id="depart" />
 			</ComboBox> -->
 
-                 <Label text="Start Date: " />
-                <Text id="txtStartDate"/>
+
 
                 <Button type="Accept"
 						text="Accept"
-						press="jobInfo"
+						press="onSubmit"
 						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
 					<layoutData>
 						<FlexItemData growFactor="1" />

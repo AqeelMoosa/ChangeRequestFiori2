@@ -172,7 +172,7 @@ sap.ui.define([
 
         onEdit: function() {
             var oModel = this.getOwnerComponent().getModel();
-            var dep = this.getView().byId("inDepartmentId").getValue();
+            var dep = this.getView().byId("txtDepartmentId").getValue();
             //let p = this.getView().getBindingContext()
 
             var pos = this.getView().byId("txtPositionId").getValue()
