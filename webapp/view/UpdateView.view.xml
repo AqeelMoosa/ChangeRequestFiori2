@@ -46,20 +46,6 @@
                 <Text id="txtStartDate"/>
 
                 <Button type="Accept"
-<<<<<<< HEAD
-						text="Accept"
-						press="onSubmit"
-=======
-						text="Save Job Infomation"
-						press="onEdit"
->>>>>>> 54afff3 (test)
-						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
-					<layoutData>
-						<FlexItemData growFactor="1" />
-					</layoutData>
-				</Button>
-
-                <Button type="Accept"
 						text="Accept"
 						press="jobInfo"
 						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
