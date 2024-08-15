@@ -57,6 +57,37 @@ sap.ui.define([
 
 
         jobInfo: function() {
+
+        var oModel = this.getOwnerComponent().getModel();
+        var event = this.getView().byId("event").getValue();
+
+            oModel.read("/EmpJob", {
+                success: (oData) => {
+                    console.log(oData.results);
+                }
+            }),
+
+            oModel.metadataLoaded().then(function(){
+                var payload = {
+                    "__metadata": {
+                        "uri": "EmpJob(startDate=datetime'2024-08-14T00:00:00',userId='80297')",
+                        "type": "SFOData.Position"
+                    },
+                    
+                    "eventReason": event
+                    
+                };
+        
+                oModel.create("/upsert", payload, {
+                    success: function()
+                    {
+                        sap.m.MessageBox.show("Updated successfully!", {
+                          icon: sap.m.MessageBox.Icon.SUCCESS,
+                          title: "Info!"
+                      });
+                 },
+                })
+            })
             
         },
 
