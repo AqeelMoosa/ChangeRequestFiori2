@@ -78,7 +78,7 @@ sap.ui.define([
 
 
                     const numb = String(pos.match(/\((\d+)\)/));
-                        console.log(numb)
+                        // console.log(numb)
 
                 },
                 error: (oError) => console.error("Error", oError)
@@ -99,11 +99,49 @@ sap.ui.define([
 
 
 
-        onEdit: function() {
-
-        
+        onSubmit: function () {
             var oModel = this.getOwnerComponent().getModel();
-            var dep = this.getView().byId("depart").getValue();
+            var sPosition = this.getView().byId("txtPositionId").getText();
+            var sDepartment = this.getView().byId("inDepartmentId").getValue();
+            var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
+
+            oModel.read("/Position", {
+                urlParameters: {
+                    "$filter": `code eq '${sPositionCode}'`
+                },
+                success: (oPositionData) => {
+                    var sPositionUri = oPositionData.results[0].__metadata.uri;
+
+                    var oPositionPayload = {
+                        "__metadata": {
+                            "uri": `${sPositionUri}`,
+                            "type": "SFOData.Position"
+                        },
+                        
+                        "department": `${sDepartment}`
+                    };
+
+                    oModel.create("/upsert", oPositionPayload, {
+                        success: () => {
+                            sap.m.MessageBox.show("Updated successfully!", {
+                                icon: sap.m.MessageBox.Icon.SUCCESS,
+                                title: "Info!"
+                            });
+                        },
+                        error: (oError) => { console.log(oError); }
+                    })
+
+                },
+                error: (oError) => { console.log(oError); }
+            });
+        },
+
+
+
+
+        onEdit: function() {
+            var oModel = this.getOwnerComponent().getModel();
+            var dep = this.getView().byId("inDepartmentId").getValue();
             //let p = this.getView().getBindingContext()
 
             var pos = this.getView().byId("txtPositionId").getValue()
@@ -122,29 +160,27 @@ sap.ui.define([
                 }
             }),
 
-                oModel.metadataLoaded().then(function(){
-                    var payload = {
-                        "__metadata": {
-                            "uri": "Position(code='"+ result +"',effectiveStartDate='"+ date +"')",
-                            "type": "SFOData.Position"
-                        },
-                        
-                        "department": dep
-                        
-                    };
-            
-                    oModel.create("/upsert", payload, {
-                        success: function()
-                        {
-                            sap.m.MessageBox.show("Updated successfully!", {
-                              icon: sap.m.MessageBox.Icon.SUCCESS,
-                              title: "Info!"
-                          });
-                     },
-                    })
+            oModel.metadataLoaded().then(function(){
+                var payload = {
+                    "__metadata": {
+                        "uri": "Position(code='"+ result +"',effectiveStartDate='"+ date +"')",
+                        "type": "SFOData.Position"
+                    },
+                    
+                    "department": dep
+                    
+                };
+        
+                oModel.create("/upsert", payload, {
+                    success: function()
+                    {
+                        sap.m.MessageBox.show("Updated successfully!", {
+                            icon: sap.m.MessageBox.Icon.SUCCESS,
+                            title: "Info!"
+                        });
+                    },
                 })
-
-
+            })
         },
 
 
@@ -218,7 +254,7 @@ _onRouteMatched1: function (oEvent) {
     var sEmpId = sUrl.substring(index + "update/".length);
     // var oSelectedItem = oEvent.getSource();
     // var oContext = oSelectedItem.getBindingContext();
-    console.log(oEvent)
+    // console.log(oEvent)
    
 
     const oDataModel = this.getOwnerComponent().getModel();

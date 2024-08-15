@@ -30,7 +30,7 @@
                 <Text id="txtDepartmentId"/>
 
                 <Label text="Department: " />
-                <Input id="depart"/>
+                <Input id="inDepartmentId"/>
 
                 <!-- <ComboBox
 				items="{
@@ -44,7 +44,7 @@
 
                 <Button type="Accept"
 						text="Accept"
-						press="onEdit"
+						press="onSubmit"
 						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
 					<layoutData>
 						<FlexItemData growFactor="1" />
