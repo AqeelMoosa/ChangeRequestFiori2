@@ -22,6 +22,10 @@
                         <Label text="Start Date"></Label>
                     </Column>
 
+                    <Column>
+                        <Label text="is Updated?"></Label>
+                    </Column>
+
 
                 </columns>
                 <items>
@@ -31,6 +35,7 @@
                             <Text text="{cust_PositionId}" id="pos"></Text>
                             <Text text="{cust_DepartmentId}" id="dep"></Text>
                             <Text text="{cust_StartDate}" id="start"></Text>
+                            <Text text="{updated}" id="update"></Text>
                         </cells>
                     </ColumnListItem>
                 </items>

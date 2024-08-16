@@ -26,24 +26,35 @@
                  <Label text="Position: " />
                 <Text id="txtPositionId"/>
 
-                 <Label text="Start Date: " />
+                <Label text="Start Date:"/>
                 <Text id="txtStartDate"/>
-
-                 <!-- <Label text="Department: " />
-                <Text id="txtDepartmentId"/> -->
+            
+                <Label text="Department: " />
+                <Text id="txtDepartmentId"/>
+<!-- 
+                <Label text="Department Change: " />
+                <Input id="inDepartmentId"/>
+                -->
 <!-- 
                 <Label text="Event Change:"/>
                 <Input id="event"></Input> -->
-
+<!-- 
                 <Label text="Department: " />
-                <Input id="inDepartmentId"/>
+                <Input id="inDepartmentId"/> -->
 
-                <!-- <ComboBox
+
+                <Label text="Department Change:"></Label>
+                <ComboBox id="inDepartmentId"
 				items="{
-					path: '/Position'
+					path: '/Position',
+                      parameters:{
+                        expand: 'departmentNav'
+                    }
 				}">
-				<core:Item key="{department}" text="{department}" id="depart" />
-			</ComboBox> -->
+				<core:Item key="{department}" text="{departmentNav/name} ({department})"/>
+			</ComboBox>
+
+
 
 
 
@@ -55,6 +66,17 @@
 						<FlexItemData growFactor="1" />
 					</layoutData>
 				</Button>
+
+                <Button type="Accept"
+						text="Job info update test"
+						press="jobInfo"
+						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
+					<layoutData>
+						<FlexItemData growFactor="1" />
+					</layoutData>
+				</Button>
+
+                
             </VBox>
 
         </content>

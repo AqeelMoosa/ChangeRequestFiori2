@@ -15,7 +15,7 @@ sap.ui.define([
           //var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
           //oRouter.getRoute("update").attachPatternMatched(this._onObjectMatched, this);
 
-          this.testFunction()
+          
 
           this.getRouter().getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
 
@@ -56,116 +56,163 @@ sap.ui.define([
         },
 
 
-        jobInfo: function() {
-
-        var oModel = this.getOwnerComponent().getModel();
-        var event = this.getView().byId("event").getValue();
-
-            oModel.read("/EmpJob", {
-                success: (oData) => {
-                    console.log(oData.results);
-                }
-            }),
-
-            oModel.metadataLoaded().then(function(){
-                var payload = {
-                    "__metadata": {
-                        "uri": "EmpJob(startDate=datetime'2024-08-14T00:00:00',userId='80297')",
-                        "type": "SFOData.Position"
-                    },
-                    
-                    "eventReason": event
-                    
-                };
         
-                oModel.create("/upsert", payload, {
-                    success: function()
-                    {
-                        sap.m.MessageBox.show("Updated successfully!", {
-                          icon: sap.m.MessageBox.Icon.SUCCESS,
-                          title: "Info!"
-                      });
-                 },
-                })
-            })
-            
-        },
-
-
-        testFunction: function() {
-
-            var sUrl = window.location.href;
-            var index = sUrl.indexOf("update/");
-            var sEmpId = sUrl.substring(index + "update/".length);
-
-            const oDataModel = this.getOwnerComponent().getModel();
-
-            oDataModel.read(`/cust_EmployeeShiftChange('${sEmpId}')`, {
-                success: (oData) => {
-                   
-                    const pos =  this.byId("txtPositionId").getText(oData.cust_PositionId);
-                   
-                    //this.byId("txtStartDate").setText(oData.cust_StartDate);
-
-
-                    const numb = String(pos.match(/\((\d+)\)/));
-                        // console.log(numb)
-
-                },
-                error: (oError) => console.error("Error", oError)
-            });
-
-            //var oModel = this.getOwnerComponent().getModel();
-            //var dep = this.getView().byId("depart").getValue();
-            //let p = this.getView().getBindingContext()
-
-            
-            //var date = this.getView().byId("txtStartDate").getValue()
-
-           
-
-           
-
-        },
+                  
 
 
 
         onSubmit: function () {
             var oModel = this.getOwnerComponent().getModel();
             var sPosition = this.getView().byId("txtPositionId").getText();
-            var sDepartment = this.getView().byId("inDepartmentId").getValue();
+           // var sDepartment = this.getView().byId("inDepartmentId").getSelectedKey();
+            var depart = this.getView().byId("txtDepartmentId").getText();
+            var sStartDate = this.getView().byId("txtStartDate").getText();
             var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
+            var DepartCode = depart.match(/\((\d+)\)/)[1];
 
-            oModel.read("/Position", {
-                urlParameters: {
-                    "$filter": `code eq '${sPositionCode}'`
-                },
-                success: (oPositionData) => {
-                    var sPositionUri = oPositionData.results[0].__metadata.uri;
+            console.log(DepartCode)
+ 
+            var oDate = new Date(sStartDate);
+ 
+            var year = oDate.getFullYear();
+            var month = String(oDate.getMonth() + 1).padStart(2, '0');
+            var day = String(oDate.getDate()).padStart(2, '0');
+            var hours = String(oDate.getHours()).padStart(2, '0');
+            var minutes = String(oDate.getMinutes()).padStart(2, '0');
+            var seconds = String(oDate.getSeconds()).padStart(2, '0');
+            var sFormattedStartDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-                    var oPositionPayload = {
-                        "__metadata": {
-                            "uri": `${sPositionUri}`,
-                            "type": "SFOData.Position"
-                        },
+            console.log(oDate)
+ 
+            console.log(sFormattedStartDate);
+ 
+            oModel.metadataLoaded().then(function(){
+                var payload = {
+                    "__metadata": {
+                        "uri": `Position(code='${sPositionCode}',effectiveStartDate=datetime'${sFormattedStartDate}')`,
+                        "type": "SFOData.Position"
+                    },
+                   
+                    "department": `${DepartCode}`
+                   
+                };
+
+                
+       
+                oModel.create("/upsert", payload, {
+                    success: function()
+                    {
+                        sap.m.MessageBox.show("Updated successfully!", {
+                            icon: sap.m.MessageBox.Icon.SUCCESS,
+                            title: "Info!"
+                        });
+
                         
-                        "department": `${sDepartment}`
-                    };
 
-                    oModel.create("/upsert", oPositionPayload, {
-                        success: () => {
-                            sap.m.MessageBox.show("Updated successfully!", {
-                                icon: sap.m.MessageBox.Icon.SUCCESS,
-                                title: "Info!"
-                            });
-                        },
-                        error: (oError) => { console.log(oError); }
-                    })
-
-                },
-                error: (oError) => { console.log(oError); }
-            });
+                        //this.processJobInfo(jobInfo);
+                    },
+                })
+            })
         },
+
+        // processJobInfo: function (jobInfo) {
+        //     // Perform operations with jobInfo
+        //     console.log("Processing Job Info:", jobInfo);
+        //     // Update some properties or make further API calls
+        // },
+
+
+        jobInfo: function() {
+
+            var oModel = this.getOwnerComponent().getModel();
+
+            var posdepart = this.getView().byId("txtDepartmentId").getText();
+            var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
+           
+            var emp = this.getView().byId("txtEmpId").getText();
+
+
+            var ejStartDate = this.getView().byId("txtStartDate").getText();
+            var ejDate = new Date(ejStartDate);
+ 
+            var Eyear = ejDate.getFullYear();
+            var Emonth = String(ejDate.getMonth() + 1).padStart(2, '0');
+            var Eday = String(ejDate.getDate()).padStart(2, '0');
+            var Ehours = String(ejDate.getHours()).padStart(2, '0');
+            var Eminutes = String(ejDate.getMinutes()).padStart(2, '0');
+            var Eseconds = String(ejDate.getSeconds()).padStart(2, '0');
+            var ejFormattedStartDate = `${Eyear}-${Emonth}-${Eday}T${Ehours}:${Eminutes}:${Eseconds}`;
+            
+                oModel.read("/EmpJob", {
+                    success: (oData) => {
+                        console.log(oData.results);
+                    }}),
+    
+                    oModel.metadataLoaded().then(function(){
+                        var payload = {
+                            "__metadata": {
+                                "uri": `EmpJob(startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
+                                "type": "SFOData.EmpJob"
+                            },
+
+
+                            "department": posDepartCode,
+                            "eventReason": "TRANDEPT"
+                           
+                        };
+    
+                        oModel.create("/upsert", payload, {
+                            success: function()
+                            {
+                                
+                                sap.m.MessageBox.show("Updated successfully!", {
+                                    icon: sap.m.MessageBox.Icon.SUCCESS,
+                                    title: "Info!"
+                                });
+                            },
+                        })
+                    
+                })
+            },
+
+
+
+        // onSubmit: function () {
+        //     var oModel = this.getOwnerComponent().getModel();
+        //     var sPosition = this.getView().byId("txtPositionId").getText();
+        //     var sDepartment = this.getView().byId("inDepartmentId").getValue();
+        //     var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
+
+        //     oModel.read("/Position", {
+        //         urlParameters: {
+        //             "$filter": `code eq '${sPositionCode}'`
+        //         },
+        //         success: (oPositionData) => {
+        //             var sPositionUri = oPositionData.results[0].__metadata.uri;
+
+        //             var oPositionPayload = {
+        //                 "__metadata": {
+        //                     "uri": `${sPositionUri}`,
+        //                     "type": "SFOData.Position"
+        //                 },
+                        
+        //                 "department": `${sDepartment}`
+        //             };
+
+        //             oModel.create("/upsert", oPositionPayload, {
+        //                 success: () => {
+        //                     sap.m.MessageBox.show("Updated successfully!", {
+        //                         icon: sap.m.MessageBox.Icon.SUCCESS,
+        //                         title: "Info!"
+        //                     });
+        //                 },
+        //                 error: (oError) => { console.log(oError); }
+        //             })
+
+        //         },
+        //         error: (oError) => { console.log(oError); }
+        //     });
+        // },
 
 
 
@@ -292,10 +339,10 @@ _onRouteMatched1: function (oEvent) {
  
     oDataModel.read(`/cust_EmployeeShiftChange('${sEmpId}')`, {
         success: (oData) => {
-            this.byId("txtEmpId").setText(oData.cust_EmployeeId);
-            this.byId("txtPositionId").setText(oData.cust_PositionId);
-            this.byId("txtDepartmentId").setText(oData.cust_DepartmentId);
-            this.byId("txtStartDate").setText(oData.cust_StartDate);
+            this.byId("txtEmpId").setText(oData.cust_EmployeeId)
+            this.byId("txtPositionId").setText(oData.cust_PositionId)
+            this.byId("txtDepartmentId").setText(oData.cust_DepartmentId)
+            this.byId("txtStartDate").setText(oData.cust_StartDate)
         },
         error: (oError) => console.error("Error", oError)
     });
