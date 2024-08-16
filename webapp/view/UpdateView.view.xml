@@ -42,7 +42,7 @@
                 <Label text="Department: " />
                 <Input id="inDepartmentId"/> -->
 
-
+<!-- 
                 <Label text="Department Change:"></Label>
                 <ComboBox id="inDepartmentId"
 				items="{
@@ -52,7 +52,7 @@
                     }
 				}">
 				<core:Item key="{department}" text="{departmentNav/name} ({department})"/>
-			</ComboBox>
+			</ComboBox> -->
 
 
 
@@ -66,7 +66,7 @@
 						<FlexItemData growFactor="1" />
 					</layoutData>
 				</Button>
-
+<!-- 
                 <Button type="Accept"
 						text="Job info update test"
 						press="jobInfo"
@@ -74,7 +74,7 @@
 					<layoutData>
 						<FlexItemData growFactor="1" />
 					</layoutData>
-				</Button>
+				</Button> -->
 
                 
             </VBox>

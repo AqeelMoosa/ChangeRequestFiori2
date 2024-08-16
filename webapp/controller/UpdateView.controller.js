@@ -62,9 +62,10 @@ sap.ui.define([
 
 
         onSubmit: function () {
+            var that = this;
             var oModel = this.getOwnerComponent().getModel();
             var sPosition = this.getView().byId("txtPositionId").getText();
-           // var sDepartment = this.getView().byId("inDepartmentId").getSelectedKey();
+            // var sDepartment = this.getView().byId("inDepartmentId").getSelectedKey();
             var depart = this.getView().byId("txtDepartmentId").getText();
             var sStartDate = this.getView().byId("txtStartDate").getText();
             var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
@@ -107,9 +108,7 @@ sap.ui.define([
                             title: "Info!"
                         });
 
-                        
-
-                        //this.processJobInfo(jobInfo);
+                        that.jobInfo();
                     },
                 })
             })
