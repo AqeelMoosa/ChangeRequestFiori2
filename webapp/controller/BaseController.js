@@ -1,7 +1,8 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/core/routing/History"
-    ], function (Controller, History) {
+    "sap/ui/core/routing/History",
+    "sap/ui/core/format/DateFormat"
+    ], function (Controller, History, DateFormat) {
     "use strict";
     
     return Controller.extend("shiftchange.controller.BaseController", {

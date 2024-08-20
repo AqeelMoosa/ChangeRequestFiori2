@@ -1,1 +1,24 @@
 /* Enter your custom styles here */
+
+
+.customFormLabel {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.customFormText {
+    color: #007ACC;
+}
+
+.customButton {
+   
+    color: white; /* Text color */
+    font-weight: bold; /* Bold text */
+    border-radius: 5px; /* Rounded corners */
+    padding: 20px 20px; /* Padding for size */
+  
+}
+
+.customButton:hover {
+    color: #005f99; /* Darker shade on hover */
+}

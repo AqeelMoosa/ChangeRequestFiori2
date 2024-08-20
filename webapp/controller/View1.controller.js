@@ -11,23 +11,57 @@ sap.ui.define([
 	"sap/m/Text",
 	"sap/ui/core/routing/History",
 	"sap/ui/core/UIComponent",
+    "sap/ui/core/format/DateFormat"
 	
 ],
-function (Controller, JSONModel, IconPool, Dialog, Button, mobileLibrary, List, StandardListItem, Text, Fragment, Device, History, UIComponent) {
+function (Controller, DateFormat) {
 	"use strict";
 
     return Controller.extend("shiftchange.controller.View1", {
+
+        
         onInit: function () {
                 this.onReadEmpData();
+                this.dateFormatter();
+
+                //var oFilter = new sap.ui.model.Filter("status", sap.ui.model.FilterOperator.EQ, "Completed");
 				
         },
+
+        dateFormatter: function(sDate) {
+            if (!sDate) {
+                return "";
+            }
+
+            // Create a DateFormat instance with the desired pattern
+            var oDateFormat = sap.ui.core.format.DateFormat.getDateTimeInstance({
+                pattern: "EEE, MMM d, yyyy" // Example format: 2024-08-19
+            });
+
+            // Format the date and return the formatted string
+            return oDateFormat.format(new Date(sDate));
+        },
+
+        
+
 
         onReadEmpData: function(){
             var oModel = this.getOwnerComponent().getModel();
             oModel.read("/cust_EmployeeShiftChange", {
-                success: function(response) {
-                    console.log(oModel)
+                urlParameters:{
+                    "$filter":`cust_WorkflowStatus eq 'COMPLETED'`
                 },
+
+                
+                success: function(oData) {
+                    console.log(oData)
+
+                    // var oTable = this.byId("table1");
+                    // var oTableModel = new sap.ui.model.json.JSONModel();
+                    // oTableModel.setData(oData);
+                    // oTable.setModel(oTableModel);
+                },
+                
                 error: function(error) {
 
                 }

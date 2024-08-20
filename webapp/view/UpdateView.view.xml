@@ -1,4 +1,4 @@
-<mvc:View controllerName="shiftchange.controller.UpdateView"
+<mvc:View xmlns:form="sap.ui.layout.form" controllerName="shiftchange.controller.UpdateView"
     xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
@@ -6,8 +6,11 @@
 	xmlns:smartField="sap.ui.comp.smartfield"
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     xmlns:html="http://www.w3.org/1999/xhtml">
-    <Page id="page" title="{i18n>title}">
+    <Page id="page" title="{i18n>uTitle}">
         <content>
+
+
+        
 
 
         <!-- <VBox alignItems="Center" fitContainer="true" items="/Position">
@@ -19,65 +22,39 @@
 
 
 
-            <VBox alignItems="Center" fitContainer="true">
-                <Label text="Employee ID: " />
-                <Text id="txtEmpId"/>
+            <form:SimpleForm>
 
-                 <Label text="Position: " />
-                <Text id="txtPositionId"/>
+             <Label text="Employee ID " class="customFormLabel" />
+                <Text id="txtEmpId" class="customFormText"/>
 
-                <Label text="Start Date:"/>
-                <Text id="txtStartDate"/>
+                 <Label text="Position " class="customFormLabel" />
+                <Text id="txtPositionId" class="customFormText"/>
+
+                <Label text="Start Date" class="customFormLabel"/>
+                <Text id="txtStartDate" class="customFormText"/>
             
-                <Label text="Department: " />
-                <Text id="txtDepartmentId"/>
-<!-- 
-                <Label text="Department Change: " />
-                <Input id="inDepartmentId"/>
-                -->
-<!-- 
-                <Label text="Event Change:"/>
-                <Input id="event"></Input> -->
-<!-- 
-                <Label text="Department: " />
-                <Input id="inDepartmentId"/> -->
-
-<!-- 
-                <Label text="Department Change:"></Label>
-                <ComboBox id="inDepartmentId"
-				items="{
-					path: '/Position',
-                      parameters:{
-                        expand: 'departmentNav'
-                    }
-				}">
-				<core:Item key="{department}" text="{departmentNav/name} ({department})"/>
-			</ComboBox> -->
+                <Label text="Department "  class="customFormLabel"/>
+                <Text id="txtDepartmentId" class="customFormText"/>
 
 
 
 
-
-                <Button type="Accept"
-						text="Accept"
+                <Button 
+						text="Accept Changes"
 						press="onSubmit"
-						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
+                        icon="sap-icon://accept"
+                        width="200px" 
+                        class="customButton">
 					<layoutData>
 						<FlexItemData growFactor="1" />
 					</layoutData>
 				</Button>
-<!-- 
-                <Button type="Accept"
-						text="Job info update test"
-						press="jobInfo"
-						ariaDescribedBy="acceptButtonDescription genericButtonDescription">
-					<layoutData>
-						<FlexItemData growFactor="1" />
-					</layoutData>
-				</Button> -->
+            
+            </form:SimpleForm>
+               
 
                 
-            </VBox>
+            
 
         </content>
     </Page>

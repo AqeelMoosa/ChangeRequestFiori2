@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/library",
     "sap/ui/core/Fragment",
-    "./BaseController"
-], function(Controller, JSONModel, mobileLibrary, Fragment, BaseController) {
+    "./BaseController",
+    "sap/m/BusyDialog"
+], function(Controller, JSONModel, mobileLibrary, Fragment, BaseController, BusyDialog) {
     "use strict";
 
     return BaseController.extend("shiftchange.controller.UpdateView", {
@@ -15,7 +16,8 @@ sap.ui.define([
           //var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
           //oRouter.getRoute("update").attachPatternMatched(this._onObjectMatched, this);
 
-          
+           // Initialize BusyDialog
+           this._oBusyDialog = new BusyDialog();
 
           this.getRouter().getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
 
@@ -62,6 +64,7 @@ sap.ui.define([
 
 
         onSubmit: function () {
+            
             var that = this;
             var oModel = this.getOwnerComponent().getModel();
             var sPosition = this.getView().byId("txtPositionId").getText();
@@ -103,14 +106,28 @@ sap.ui.define([
                 oModel.create("/upsert", payload, {
                     success: function()
                     {
-                        sap.m.MessageBox.show("Updated successfully!", {
+                        
+                        sap.m.MessageBox.show("The Department has been updated sucessfully!", {
                             icon: sap.m.MessageBox.Icon.SUCCESS,
                             title: "Info!"
                         });
 
+
                         that.jobInfo();
+                        this._oBusyDialog.open();
+
+                setTimeout(() => {
+                    this._oBusyDialog.close();
+                    sap.m.MessageToast.show("All updates reflected");
+                    
+                    
+                }, 3000);
+                        
+        
                     },
                 })
+
+                
             })
         },
 
@@ -127,6 +144,10 @@ sap.ui.define([
 
             var posdepart = this.getView().byId("txtDepartmentId").getText();
             var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
+
+            var pos = this.getView().byId("txtPositionId").getText();
+            var posCode = pos.match(/\((\d+)\)/)[1];
+
            
             var emp = this.getView().byId("txtEmpId").getText();
 
@@ -154,17 +175,51 @@ sap.ui.define([
                                 "type": "SFOData.EmpJob"
                             },
 
-
                             "department": posDepartCode,
+                            "position": posCode,
                             "eventReason": "TRANDEPT"
                            
                         };
+
+
+
+                        oModel.metadataLoaded().then(function(){
+                            var sUrl = window.location.href;
+                            var index = sUrl.indexOf("update/");
+                            var sEmpId = sUrl.substring(index + "update/".length)
+                            
+                            
+                            var payload2 = {
+                                "__metadata": {
+                                    "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
+                                    "type": "SFOData.cust_EmployeeShiftChange"
+                                },
+
+                                "cust_WorkflowStatus":"Updated!"
+                            }
+
+                            
+                        oModel.create("/upsert", payload2, {
+                            success: function()
+                            {
+                                
+                                sap.m.MessageBox.show("Final Update Complete", {
+                                    icon: sap.m.MessageBox.Icon.SUCCESS,
+                                    title: "Info!"
+                                });
+                            },
+                        })
+
+                            
+                        })
+
+                        
     
                         oModel.create("/upsert", payload, {
                             success: function()
                             {
                                 
-                                sap.m.MessageBox.show("Updated successfully!", {
+                                sap.m.MessageBox.show("Changes has been reflected on the employee profile", {
                                     icon: sap.m.MessageBox.Icon.SUCCESS,
                                     title: "Info!"
                                 });

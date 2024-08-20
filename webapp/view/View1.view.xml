@@ -3,10 +3,25 @@
     xmlns="sap.m">
     <Page id="page" title="{i18n>title}">
         <content>
-            <Table items="{/cust_EmployeeShiftChange}">
+            <Table items="{path:'/cust_EmployeeShiftChange',
+            filters:[
+            {
+                path:'cust_WorkflowStatus',
+                operator: 'EQ',
+                value1: 'Approval Completed'
+            }
+            ]
+            }"
+             growing="true" 
+             growingThreshold="10" 
+             inset="false" 
+             mode="None" 
+             sticky="ColumnHeaders" 
+             class="sapUiResponsiveMargin sapUiResponsiveContentPadding"
+            >
                 <columns>
 
-                    <Column>
+                    <Column >
                         <Label text="Employee Number"></Label>
                     </Column>
 
@@ -23,7 +38,7 @@
                     </Column>
 
                     <Column>
-                        <Label text="is Updated?"></Label>
+                        <Label text="Status"></Label>
                     </Column>
 
 
@@ -34,8 +49,8 @@
                             <Text text="{cust_EmployeeId}" id="emp"></Text>
                             <Text text="{cust_PositionId}" id="pos"></Text>
                             <Text text="{cust_DepartmentId}" id="dep"></Text>
-                            <Text text="{cust_StartDate}" id="start"></Text>
-                            <Text text="{updated}" id="update"></Text>
+                            <Text text="{path: 'cust_StartDate', formatter:'.dateFormatter'}" id="start"></Text>
+                            <Text text="{cust_WorkflowStatus}" id="update"></Text>
                         </cells>
                     </ColumnListItem>
                 </items>
