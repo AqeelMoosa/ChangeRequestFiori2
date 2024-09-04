@@ -3,34 +3,37 @@
     xmlns="sap.m">
     <Page id="page" title="{i18n>title}">
         <content>
-            <Table items="{path:'/cust_EmployeeShiftChange',
-            filters:[
-            {
-                path:'cust_WorkflowStatus',
-                operator: 'EQ',
-                value1: 'Approval Completed'
-            }
-            ]
-            }"
+            <Table items="{
+                    path: 'employeeModel>/'
+                }"
              growing="true" 
              growingThreshold="10" 
              inset="false" 
              mode="None" 
              sticky="ColumnHeaders" 
              class="sapUiResponsiveMargin sapUiResponsiveContentPadding"
+             id="table1"
             >
+
+
+            <headerToolbar>
+                 <Toolbar>
+                    <Title text="Employee Shift Changes" />
+                         <ToolbarSpacer />
+                </Toolbar>
+             </headerToolbar>
                 <columns>
 
                     <Column >
-                        <Label text="Employee Number"></Label>
+                        <Label text="Employee"></Label>
                     </Column>
 
                     <Column>
-                        <Label text="Position Number"></Label>
+                        <Label text="Position"></Label>
                     </Column>
 
                     <Column>
-                        <Label text="Department Number"></Label>
+                        <Label text="New Department"></Label>
                     </Column>
 
                     <Column>
@@ -38,7 +41,11 @@
                     </Column>
 
                     <Column>
-                        <Label text="Status"></Label>
+                        <Label text="Status"> </Label>
+                    </Column>
+
+                    <Column>
+                        <Label text="New Work Schedule"> </Label>
                     </Column>
 
 
@@ -46,11 +53,12 @@
                 <items>
                     <ColumnListItem type="Navigation" press="OnDetails">
                         <cells>
-                            <Text text="{cust_EmployeeId}" id="emp"></Text>
-                            <Text text="{cust_PositionId}" id="pos"></Text>
-                            <Text text="{cust_DepartmentId}" id="dep"></Text>
-                            <Text text="{path: 'cust_StartDate', formatter:'.dateFormatter'}" id="start"></Text>
-                            <Text text="{cust_WorkflowStatus}" id="update"></Text>
+                            <Text text="{employeeModel>cust_EmployeeId}" id="emp"></Text>
+                            <Text text="{employeeModel>cust_CurrentPosition}" id="pos"></Text>
+                            <Text text="{employeeModel>cust_NewDepartment}" id="dep"></Text>
+                            <Text text="{path: 'employeeModel>cust_StartDate', formatter:'.dateFormatter'}" id="start"></Text>
+                            <Text text="{employeeModel>cust_WorkflowStatus}" id="update"> </Text>
+                            <Text text="{employeeModel>cust_NewWorkSchedule}" id="workSchedule"> </Text>
                         </cells>
                     </ColumnListItem>
                 </items>

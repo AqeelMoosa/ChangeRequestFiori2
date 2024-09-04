@@ -100,7 +100,11 @@
             "TargetView1"
           ]
         },
-
+        {
+          "pattern": "",
+          "name": "View1",
+          "target": "View1"
+        },
         {
           "pattern": "update/{empId}",
           "name": "update",
@@ -112,10 +116,14 @@
           "viewType": "XML",
           "transition": "slide",
           "clearControlAggregation": false,
-          "viewId": "View1",
+          "viewId": "View1View",
           "viewName": "View1"
         },
-
+        "home": {
+          "viewName": "View1View",
+          "viewId": "view1",
+          "viewLevel": 1
+        },
         "update": {
           "viewName": "UpdateView",
           "viewId": "updateView",
@@ -129,5 +137,9 @@
       "async": true,
       "id": "App"
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "shiftchange"
   }
 }

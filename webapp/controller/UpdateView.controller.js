@@ -18,12 +18,41 @@ sap.ui.define([
 
            // Initialize BusyDialog
            this._oBusyDialog = new BusyDialog();
+           this.dateFormatter()
 
           this.getRouter().getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
+          //this.onNavBack();
 
           //this.getOwnerComponent().getModel().metadataLoaded().then(this._onMetadataLoaded.bind(this));
+
+          this.empClass();
            
         },
+
+        getModel: function(sName) {
+            return this.getView().getModel(sName)
+        },
+
+        dateFormatter: function(sDate) {
+            if (!sDate) {
+                return "";
+            }
+
+            // Create a DateFormat instance with the desired pattern
+            var oDateFormat = sap.ui.core.format.DateFormat.getDateTimeInstance({
+                pattern: "EEE, MMM d, yyyy" // Example format: 2024-08-19
+            });
+
+            // Format the date and return the formatted string
+            return oDateFormat.format(new Date(sDate));
+        },
+
+
+        // onNavBack: function () {
+        //     var uRouter = sap.ui.core.UIComponent.getRouterFor(this);
+        //     uRouter.navTo("home");
+        //     console.log(uRouter)
+        // },
         
 
         _onMetadataLoaded: function () {
@@ -46,20 +75,18 @@ sap.ui.define([
             oViewModel.setProperty("/busy", true);
             // Restore original busy indicator delay for the detail view
             oViewModel.setProperty("/delay");
+        
         },
 
-
-
+        
+        
 
 
         onAfterRendering: function () {
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("update").attachPatternMatched(this._onRouteMatched1, this);
         },
-
-
         
-                  
 
 
 
@@ -97,64 +124,145 @@ sap.ui.define([
                         "type": "SFOData.Position"
                     },
                    
-                    "department": `${DepartCode}`
+                    //"code":`${sPositionCode}`,
+                   "department": `${DepartCode}`
                    
                 };
 
                 
+
+                
        
                 oModel.create("/upsert", payload, {
-                    success: function()
+                    success: () =>
+            
                     {
-                        
-                        sap.m.MessageBox.show("The Department has been updated sucessfully!", {
-                            icon: sap.m.MessageBox.Icon.SUCCESS,
-                            title: "Info!"
-                        });
-
-
                         that.jobInfo();
-                        this._oBusyDialog.open();
+                        console.log("Department Updated")      
 
-                setTimeout(() => {
-                    this._oBusyDialog.close();
-                    sap.m.MessageToast.show("All updates reflected");
-                    
-                    
-                }, 3000);
                         
-        
                     },
+
+                    error(){
+                        sap.m.MessageBox.show("Department could not be updated", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                    },
+
+
+                    error(){
+                        sap.m.MessageBox.show("Something went wrong, please try again later", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                    }
                 })
 
                 
             })
         },
 
-        // processJobInfo: function (jobInfo) {
-        //     // Perform operations with jobInfo
-        //     console.log("Processing Job Info:", jobInfo);
-        //     // Update some properties or make further API calls
-        // },
+        empClass: function(){
+            const that = this;
+
+            const oDataModel = this.getOwnerComponent().getModel();
+            oDataModel.read("/Picklist('EMPLOYEECLASS')/picklistOptions", {
+                urlParameters: {
+                    "$select": "id,status,picklistLabels"
+                },
+                success: (oData) => {
+
+                    // console.log("EmpClass Results", oData.results);
+
+                    const aPromises = oData.results.map(async (record) => {
+                        try {
+                            // Extract the shortened URI from the deferred object
+                            const iStartIndex = record.picklistLabels.__deferred.uri.indexOf("/odata/v2");
+                            const sShortenedUri = record.picklistLabels.__deferred.uri.substring(iStartIndex + "/odata/v2".length);
+
+
+                            console.log("Full URI", record.picklistLabels.__deferred.uri);
+                            console.log("Shortened URI", sShortenedUri);
+                     
+                            // Fetch employee class data
+                            const employeeClassData = await new Promise((resolve, reject) => {
+                                oDataModel.read(sShortenedUri, {
+                                    urlParameters: {
+                                        "$select": "optionId,label,locale"
+                                    },
+                                    success: function (oEmployeeClass) {
+                                        console.log("Emp Class Results", oEmployeeClass);
+
+                                       resolve({
+                                            ...record,
+                                            employeeData: oEmployeeClass
+                                       });
+
+                                        
+                                    },
+                                    error: function (oError) {
+                                        console.error("Error fetching employee class data:", oError);
+                                        reject(oError);
+                                    }
+                                });
+                            });
+                     
+                            // Return the mapped data
+                            const [employeeClassResult] = await Promise.all([employeeClassData]);
+                            console.log(employeeClassResult.employeeData.optionId);
+                            return {
+                                // optionId: employeeClassResult.employeeClassData.optionId,
+                                label: employeeClassResult.label,
+                                locale: employeeClassResult.locale
+
+                            };
+                        } catch (error) {
+                            console.error("Error in promise mapping:", error);
+                            throw error; // Propagate the error to be caught by Promise.all
+                        }
+                    });
+                     
+                    Promise.all(aPromises)
+                        .then((aCombinedResults) => {
+                            console.log("Combined Results:", aCombinedResults);
+                            that.getView().setModel(new sap.ui.model.json.JSONModel(aCombinedResults), "empClasses");
+                        })
+                        .catch((oError) => {
+                            console.error("Error resolving promises:", oError);
+                        });
+                    
+                },
+                error: (oError) => console.error("Error", oError),
+        
+               
+            })
+
+        },
+
+       
+
+
+        
+
 
 
         jobInfo: function() {
 
+            this._oBusyDialog.open()
+            setTimeout(function(){
+                
+           
+            var that = this;
             var oModel = this.getOwnerComponent().getModel();
-
             var posdepart = this.getView().byId("txtDepartmentId").getText();
             var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
-
             var pos = this.getView().byId("txtPositionId").getText();
             var posCode = pos.match(/\((\d+)\)/)[1];
-
-           
             var emp = this.getView().byId("txtEmpId").getText();
-
 
             var ejStartDate = this.getView().byId("txtStartDate").getText();
             var ejDate = new Date(ejStartDate);
- 
             var Eyear = ejDate.getFullYear();
             var Emonth = String(ejDate.getMonth() + 1).padStart(2, '0');
             var Eday = String(ejDate.getDate()).padStart(2, '0');
@@ -162,10 +270,18 @@ sap.ui.define([
             var Eminutes = String(ejDate.getMinutes()).padStart(2, '0');
             var Eseconds = String(ejDate.getSeconds()).padStart(2, '0');
             var ejFormattedStartDate = `${Eyear}-${Emonth}-${Eday}T${Ehours}:${Eminutes}:${Eseconds}`;
+
+            var workSchedule = this.getView().byId("txtWorkSchedule").getText();
+            var workSchedulecode = workSchedule.match(/\(([^)]+)\)/)[1];;
+            //var emptype = this.getView().byId("empType").getselectedItemId()
+
+            
             
                 oModel.read("/EmpJob", {
                     success: (oData) => {
                         console.log(oData.results);
+                        console.log(workSchedulecode)
+                        console.log(ejStartDate)
                     }}),
     
                     oModel.metadataLoaded().then(function(){
@@ -174,240 +290,198 @@ sap.ui.define([
                                 "uri": `EmpJob(startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
                                 "type": "SFOData.EmpJob"
                             },
-
+                            
+                            //"employmentType": emptype,
+                            "workscheduleCode":workSchedulecode,
                             "department": posDepartCode,
                             "position": posCode,
                             "eventReason": "TRANDEPT"
                            
                         };
 
-
-
-                        oModel.metadataLoaded().then(function(){
-                            var sUrl = window.location.href;
-                            var index = sUrl.indexOf("update/");
-                            var sEmpId = sUrl.substring(index + "update/".length)
-                            
-                            
-                            var payload2 = {
-                                "__metadata": {
-                                    "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
-                                    "type": "SFOData.cust_EmployeeShiftChange"
-                                },
-
-                                "cust_WorkflowStatus":"Updated!"
-                            }
-
-                            
-                        oModel.create("/upsert", payload2, {
-                            success: function()
-                            {
-                                
-                                sap.m.MessageBox.show("Final Update Complete", {
-                                    icon: sap.m.MessageBox.Icon.SUCCESS,
-                                    title: "Info!"
-                                });
-                            },
-                        })
-
-                            
-                        })
-
                         
-    
                         oModel.create("/upsert", payload, {
                             success: function()
                             {
-                                
-                                sap.m.MessageBox.show("Changes has been reflected on the employee profile", {
+                                sap.m.MessageBox.show("All updates complete! Record has been removed.", {
                                     icon: sap.m.MessageBox.Icon.SUCCESS,
-                                    title: "Info!"
-                                });
+                                   title: "Success!"
+                               });
+                                console.log("Job Info Updated")
+
+                                oModel.metadataLoaded().then(function(){
+                                    var sUrl = window.location.href;
+                                    var index = sUrl.indexOf("update/");
+                                    var sEmpId = sUrl.substring(index + "update/".length)
+                                    
+                                    
+                                    var payload2 = {
+                                        "__metadata": {
+                                            "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
+                                            "type": "SFOData.cust_EmployeeShiftChange"
+                                        },
+        
+                                        "cust_WorkflowStatus":"Updated!"
+                                    }
+                                    
+                                    
+                                    
+                                oModel.create("/upsert", payload2, {
+                                    success: function()
+                                    {
+                                        
+                                        console.log("Status Updated")
+                                        that.setEmployeeModel()
+                                        that.onNavBack()
+                                        
+                                    },
+        
+                                    error(){
+                                        sap.m.MessageBox.show("Status could not be updated!", {
+                                            icon: sap.m.MessageBox.Icon.ERROR,
+                                            title: "Warning!"
+                                        });
+                                    }
+                                })
+        
+                                    
+                                })
+
+                                
                             },
+
+                            onNavBack: function () {
+                                var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+                                oRouter.navTo("home");
+                            },
+
+
+                            error(){
+                                sap.m.MessageBox.show("Employment Information could not be updated!", {
+                                    icon: sap.m.MessageBox.Icon.ERROR,
+                                    title: "Warning!"
+                                    
+                                });
+                            }
                         })
+    
                     
                 })
+
+                this._oBusyDialog.close();
+                console.log("Process Complete")
+            }.bind(this), 10000)
+
+            },
+
+            ManualStatusChange: function() {
+                var that = this;
+                var oModel = this.getOwnerComponent().getModel();
+                oModel.metadataLoaded().then(function(){
+                    var sUrl = window.location.href;
+                    var index = sUrl.indexOf("update/");
+                    var sEmpId = sUrl.substring(index + "update/".length)
+                    
+                    
+                    var payload2 = {
+                        "__metadata": {
+                            "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
+                            "type": "SFOData.cust_EmployeeShiftChange"
+                        },
+
+                        "cust_WorkflowStatus":"Manual Change Completed!"
+                    }
+                    
+                    
+                    
+                oModel.create("/upsert", payload2, {
+                    success: function()
+                    {
+
+                        sap.m.MessageBox.show("Record has been updated manually!", {
+                            icon: sap.m.MessageBox.Icon.SUCCESS,
+                           title: "Success!"
+                       });
+                        
+                        console.log("Status Updated")
+                        
+                        that.setEmployeeModel()
+                        that.onNavBack()
+                        
+                    },
+
+
+                    error(){
+                        sap.m.MessageBox.show("Status could not be updated!", {
+                            icon: sap.m.MessageBox.Icon.ERROR,
+                            title: "Warning!"
+                        });
+                    }
+                })
+
+                    
+                })
+
+            },
+
+
+            ManualChange: function(){
+                var emp = this.getView().byId("txtEmpId").getText();
+                window.open("https://salesdemo.successfactors.eu/sf/employmentinfo?blockId=block1592&selected_user="+emp+"", "_blank").focus();
             },
 
 
 
-        // onSubmit: function () {
-        //     var oModel = this.getOwnerComponent().getModel();
-        //     var sPosition = this.getView().byId("txtPositionId").getText();
-        //     var sDepartment = this.getView().byId("inDepartmentId").getValue();
-        //     var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
-
-        //     oModel.read("/Position", {
-        //         urlParameters: {
-        //             "$filter": `code eq '${sPositionCode}'`
-        //         },
-        //         success: (oPositionData) => {
-        //             var sPositionUri = oPositionData.results[0].__metadata.uri;
-
-        //             var oPositionPayload = {
-        //                 "__metadata": {
-        //                     "uri": `${sPositionUri}`,
-        //                     "type": "SFOData.Position"
-        //                 },
-                        
-        //                 "department": `${sDepartment}`
-        //             };
-
-        //             oModel.create("/upsert", oPositionPayload, {
-        //                 success: () => {
-        //                     sap.m.MessageBox.show("Updated successfully!", {
-        //                         icon: sap.m.MessageBox.Icon.SUCCESS,
-        //                         title: "Info!"
-        //                     });
-        //                 },
-        //                 error: (oError) => { console.log(oError); }
-        //             })
-
-        //         },
-        //         error: (oError) => { console.log(oError); }
-        //     });
-        // },
-
-
-
-
-        onEdit: function() {
-            var oModel = this.getOwnerComponent().getModel();
-            var dep = this.getView().byId("txtDepartmentId").getValue();
-            //let p = this.getView().getBindingContext()
-
-            var pos = this.getView().byId("txtPositionId").getValue()
-            var date = this.getView().byId("txtStartDate").getValue()
-
-            // const numb = pos.match(/\((\d+)\)/);
-
-            // if (numb) {
-            //     const result = numb[1];
-            //     console.log(result)
-            // }
-
-            oModel.read("/Position", {
-                success: (oData) => {
-                    console.log(oData.results);
-                }
-            }),
-
-            oModel.metadataLoaded().then(function(){
-                var payload = {
-                    "__metadata": {
-                        "uri": "Position(code='"+ result +"',effectiveStartDate='"+ date +"')",
-                        "type": "SFOData.Position"
-                    },
-                    
-                    "department": dep
-                    
-                };
-        
-                oModel.create("/upsert", payload, {
-                    success: function()
-                    {
-                        sap.m.MessageBox.show("Updated successfully!", {
-                            icon: sap.m.MessageBox.Icon.SUCCESS,
-                            title: "Info!"
-                        });
-                    },
-                })
-            })
-        },
-
-
-onPress: function(){
-
-
-    var oModel = this.getOwnerComponent().getModel();
-  // var oEmpId = this.getView().getBindingContext().getProperty("cust_EmployeeId")
-
-    var sUrl = window.location.href;
-    var index = sUrl.indexOf("update/");
-    var sEmpId = sUrl.substring(index + "update/".length)
-
-//    How do i get these line to read from the position Entity?
-      //var dep = this.byId("txtDepartmentId").getValue();
-//    var title = this.getView().getBindingContext().getProperty("Position/positionTitle")
-var dep = this.byId("depart").getText();
-
-
-oModel.read("/Position", {
-    success: (oData) => {
-            var oCode = this.getView.getBindingContext.getProperty("code")
-        console.log(oData.results);
-    },
-
-    
-});
-
-
-
-
-   
-
-// oModel.metadataLoaded().then(function(){
-//         var payload = {
-
-//             "__metadata": {
-//                 "uri": "https://apisalesdemo2.successfactors.com/odata/v2/cust_EmployeeShiftChange('"+sEmpId+"')",
-//                 "type": "SFOData.cust_EmployeeShiftChange"
-//             },
-
             
-
-//         };
-
-//         oModel.create("/upsert", payload, {
-//             success:function(oData, oResponse) {
-//                 console.log(oResponse)
-//                 sap.m.MessageBox.show("Updated Successfully!", {
-//                     icon: sap.m.MessageBox.Icon.SUCCESS,
-//                     title: "Info!"
-                    
-//                 });
-//             },
-//             error: function() {
-//                 sap.m.MessageBox.show("Sorry. Cannot Update. Please try again later", {
-//                     icon: sap.m.MessageBox.Icon.ERROR,
-//                     title:"Oops!"
-//                 });
-//             }
-//         });
-//     });
-
-},
  
 // Option 2
 _onRouteMatched1: function (oEvent) {
+
+    let sModel = this.getView().getModel()
+    console.log(sModel)
+
+    
+    const oDataModel = this.getOwnerComponent().getModel();
     // Retrieve the route parameters
     var sUrl = window.location.href;
     var index = sUrl.indexOf("update/");
     var sEmpId = sUrl.substring(index + "update/".length);
-    // var oSelectedItem = oEvent.getSource();
-    // var oContext = oSelectedItem.getBindingContext();
-    // console.log(oEvent)
-   
-
-    const oDataModel = this.getOwnerComponent().getModel();
  
     oDataModel.read(`/cust_EmployeeShiftChange('${sEmpId}')`, {
         success: (oData) => {
-            this.byId("txtEmpId").setText(oData.cust_EmployeeId)
-            this.byId("txtPositionId").setText(oData.cust_PositionId)
-            this.byId("txtDepartmentId").setText(oData.cust_DepartmentId)
-            this.byId("txtStartDate").setText(oData.cust_StartDate)
-        },
-        error: (oError) => console.error("Error", oError)
-    });
 
-    // oDataModel.read(`/Position('${oCode}')`, {
+            var sFormattedDate = this.dateFormatter(oData.cust_StartDate);
+
+            this.byId("txtEmpId").setText(oData.cust_EmployeeId)
+            this.byId("txtPositionId").setText(oData.cust_CurrentPosition)
+            this.byId("txtDepartmentId").setText(oData.cust_NewDepartment)
+            this.byId("txtStartDate").setText(sFormattedDate)
+            this.byId("txtWorkSchedule").setText(oData.cust_NewWorkSchedule)
+            
+        },
+        error: (oError) => console.error("Error", oError),
+
+
+        // oDataModel.read(`/EmpJob)
+
+
+
+       
+    })
+
+    // oDataModel.read("https://apisalesdemo2.successfactors.eu/odata/v2/FODivision(externalCode='INSIDE_SALES',startDate=datetime'1990-01-01T00:00:00')", {
     //     success: (oData) => {
-    //         this.byId("txtPosCode").setText(oData.code);
-    //         console.log(oData)
-    //     },
-    //     error: (oError) => console.error("Error", oError)
-    // });
+    //         console.log(oData.results);
+
+    //     }})
+
+
+    // urlParameters: {
+    //     "$expand": "cust_toDivision,cust_toLegalEntity",
+    //     "$filter": `(cust_toDivision/externalCode eq '${sDivisionId}') and (cust_toLegalEntity/externalCode eq '${sCompanyId}')`,
+    //     "$select": "externalCode,name_en_US,cust_toDivision/externalCode,cust_toLegalEntity/externalCode"
+    // },
+
 },
 
 
@@ -420,100 +494,6 @@ _onRouteMatched1: function (oEvent) {
                     path: sPath
                 });
             },
-
-
-            // getUserId: function () {
-            //     var sQuery = window.location.search;
-            //     var oParams = {};
-            //     sQuery.replace(/^\?/, '').split('&').forEach(function(param) {
-            //         var aParam = param.split('=');
-            //         oParams[aParam[0]] = decodeURIComponent(aParam[1]);
-            //     });
-                
-            //     return oParams["EmpId"] || null;
-            // },
-
-            // anything: function () {
-
-            //     var sUserId = this.getUserId();
-            //     this.byId("empId").setText(`${sUserId}`);
-            //     console.log(sUserId)
-            // }
-            
-    
-
-            // ShowFunction: function () {
-            //     var oDataModel = this.getOwnerComponent().getModel();
-        
-            
-            //     oDataModel.read("/User()", {
-            //         success: function (oData) {
-            //             // Populate the oHeadingMap with data from the response
-            //             oData.results.forEach(function (item) {
-            //                 oHeadingMap[item.businessProcessid] = item.cust_processHeading;
-            //             });
-            
-            //             // Retrieve the process heading or set it to "Unknown Process" if not found
-            //             var sProcessHeading = oHeadingMap[sProcessId] || oResourceBundle.getText("warningUnknownProcess");
-            
-            //             // Create a Text control to display the process heading
-            //             var oText = new Text({ text: sProcessHeading });
-            //             oText.addStyleClass("main-header-text");
-            
-            //             // Get the HBox control to display the process heading
-            //             var oHBox = this.byId("hbxProcessHeading");
-            //             oHBox.removeAllItems();
-            //             oHBox.addItem(oText);
-
-            //             // Get the HBox control to display the ruler
-            //             var oRulerContainer = this.byId("hbxRulerContainer");
-            //             oRulerContainer.removeAllItems();
-
-            //             var oRuler = new HBox();
-            //             oRuler.addStyleClass("ruler");
-            //             oRulerContainer.addItem(oRuler);
-
-            //             // Get the HBox control to display the close button
-            //             var oButtonContainer = this.byId("hbxButtonClose");
-            //             var oCloseButton = new Button({
-            //                 text: this.getView().getModel("i18n").getResourceBundle().getText("btnClose"),
-            //                 press: this.onNavBack.bind(this)
-            //             });
-            //             oRuler.addStyleClass("sapUiLargeMarginEnd");
-            //             oButtonContainer.addItem(oCloseButton);
-
-            //             // Get the HBox control to display the username
-            //             var oUsernameContainer = this.byId("hbxUsername");
-            //             var oUsername = new Text();
-            //             oUsername.addStyleClass("username-text");
-            //             oUsernameContainer.addItem(oUsername);
-            
-            //             // Read username for current user
-            //             oDataModel.read(`/User('${sUserId}')`, {
-            //                 success: function (oData) {
-            //                     var sFullname = oData.defaultFullName;
-            //                     oUsername.setText(sFullname);
-            //                 },
-            //                 error: function (oError) {
-            //                     console.error(oResourceBundle.getText("errorFetchingData"), oError);
-            //                 }
-            //             });
-
-            //             // Initialize the Process Flow with the provided model
-            //             this._initializeProcessFlow(oModel, sUserId);
-
-            //             this._hideBusyIndicator();
-            //         }.bind(this),
-            //         error: function (oError) {
-            //             console.error(oResourceBundle.getText("errorReadingModel"), oError);
-            //             this._hideBusyIndicator();
-            //         }
-            //     });
-           
-           // }
-
-
-
         
     });
 })

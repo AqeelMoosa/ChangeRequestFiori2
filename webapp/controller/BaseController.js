@@ -14,6 +14,24 @@ sap.ui.define([
     getRouter : function () {
     return this.getOwnerComponent().getRouter();
     },
+
+    setEmployeeModel: function () {
+        const oDataModel = this.getOwnerComponent().getModel();
+     
+        oDataModel.read("/cust_EmployeeShiftChange", {
+            urlParameters: {
+                "$filter": `cust_WorkflowStatus eq 'Approval Completed'`
+            },
+            success: (oEmployeeData) => {
+                const oEmployeeModel = new sap.ui.model.json.JSONModel(oEmployeeData.results);
+                oEmployeeModel.setSizeLimit(100000);
+     
+                this.getOwnerComponent().setModel(oEmployeeModel, "employeeModel");
+                console.log("Employee Model:", oEmployeeModel.getData());
+            },
+            error: (oError) => console.error(oError)
+        });
+    },
     
     /**
      * Convenience method for getting the view model by name in every controller of the application.

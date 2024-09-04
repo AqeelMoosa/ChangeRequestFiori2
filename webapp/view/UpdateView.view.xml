@@ -6,11 +6,31 @@
 	xmlns:smartField="sap.ui.comp.smartfield"
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     xmlns:html="http://www.w3.org/1999/xhtml">
-    <Page id="page" title="{i18n>uTitle}">
+    <Page id="page1">
+
+        	<customHeader>
+			<Toolbar>
+				<Button type="Back" press="onNavBack" text="Back" />
+				<ToolbarSpacer/>
+				<Title text="{i18n>uTitle}" level="H2"/>
+				<ToolbarSpacer/>
+                <Button icon="sap-icon://edit-outside" type="Transparent" press="ManualChange" ariaLabelledBy="editButtonLabel" text="Navigate to Job Information"/>
+                  <Button 
+						text="Manual Complete"
+						press="ManualStatusChange"
+                        icon="sap-icon://validate"
+                        width="200px" 
+                        class="customButton">
+					<layoutData>
+						<FlexItemData growFactor="1" />
+					</layoutData>
+				</Button>
+			</Toolbar>
+
+		</customHeader>
+    
         <content>
 
-
-        
 
 
         <!-- <VBox alignItems="Center" fitContainer="true" items="/Position">
@@ -24,38 +44,79 @@
 
             <form:SimpleForm>
 
+                
+
              <Label text="Employee ID " class="customFormLabel" />
                 <Text id="txtEmpId" class="customFormText"/>
 
-                 <Label text="Position " class="customFormLabel" />
+                <Label text="Position " class="customFormLabel" />
                 <Text id="txtPositionId" class="customFormText"/>
 
                 <Label text="Start Date" class="customFormLabel"/>
                 <Text id="txtStartDate" class="customFormText"/>
             
-                <Label text="Department "  class="customFormLabel"/>
+                <Label text="New Department "  class="customFormLabel"/>
                 <Text id="txtDepartmentId" class="customFormText"/>
 
+                <Label text="New Work Schedule"  class="customFormLabel"/>
+                <Text id="txtWorkSchedule" class="customFormText"/>
+
+                
+                <Label text="Employment Type"  class="customFormLabel"/>
+                <ComboBox
+				items="{
+					path: '/EmpJob'
+				}">
+				<core:Item key="{employmentType}" class="{employmentType}" />
+			</ComboBox>
 
 
+            <Label text="Employee Class"  class="customFormLabel"/>
+                <ComboBox
+				items="{
+					path: '/EmpJob'
+				}">
+				<core:Item key="{employeeClass}" text="{employeeClass}" />
+			</ComboBox>
 
+
+             <Label text="Regular/Temporary"  class="customFormLabel"/>
+                <ComboBox
+				items="{
+					path: '/EmpJob'
+				}">
+				<core:Item key="{regularTemp}" text="{regularTemp}"/>
+			</ComboBox>
+                
+
+                
                 <Button 
-						text="Accept Changes"
+						text="Update EC Profile"
 						press="onSubmit"
                         icon="sap-icon://accept"
+                        width="200px" 
+                        class="customButton"
+                        type="Accept">
+					<layoutData>
+						<FlexItemData growFactor="1" />
+					</layoutData>
+				</Button>
+
+                <!-- <Button 
+						text="Manual Change"
+						press="ManualChange"
+                        icon="sap-icon://edit-outside"
                         width="200px" 
                         class="customButton">
 					<layoutData>
 						<FlexItemData growFactor="1" />
 					</layoutData>
-				</Button>
-            
-            </form:SimpleForm>
-               
+				</Button> -->
 
                 
+              
             
-
+            </form:SimpleForm>
         </content>
     </Page>
 </mvc:View>
