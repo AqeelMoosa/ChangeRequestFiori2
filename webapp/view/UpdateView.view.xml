@@ -74,9 +74,9 @@
             <Label text="Employee Class"  class="customFormLabel"/>
                 <ComboBox
 				items="{
-					path: '/EmpJob'
+					path: 'empClasses>/'
 				}">
-				<core:Item key="{employeeClass}" text="{employeeClass}" />
+				<core:Item key="{empClasses>id}" text="{empClasses>label}" />
 			</ComboBox>
 
 

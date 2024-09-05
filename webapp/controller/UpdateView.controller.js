@@ -163,82 +163,76 @@ sap.ui.define([
             })
         },
 
-        empClass: function(){
-            const that = this;
-
+        empClass: function() {
             const oDataModel = this.getOwnerComponent().getModel();
+            const that = this;
+            
+            // Read the picklist options for 'EMPLOYEECLASS' from the OData model
             oDataModel.read("/Picklist('EMPLOYEECLASS')/picklistOptions", {
                 urlParameters: {
-                    "$select": "id,status,picklistLabels"
+                    "$select": "id,picklistLabels" // Select relevant fields
                 },
                 success: (oData) => {
-
-                    // console.log("EmpClass Results", oData.results);
-
+                    // Map over the results and create an array of promises
                     const aPromises = oData.results.map(async (record) => {
                         try {
-                            // Extract the shortened URI from the deferred object
+                            // Extract the URI for picklistLabels from the deferred object
                             const iStartIndex = record.picklistLabels.__deferred.uri.indexOf("/odata/v2");
                             const sShortenedUri = record.picklistLabels.__deferred.uri.substring(iStartIndex + "/odata/v2".length);
-
-
-                            console.log("Full URI", record.picklistLabels.__deferred.uri);
-                            console.log("Shortened URI", sShortenedUri);
                      
-                            // Fetch employee class data
+                            // Fetch the employee class data for the current record
                             const employeeClassData = await new Promise((resolve, reject) => {
                                 oDataModel.read(sShortenedUri, {
                                     urlParameters: {
-                                        "$select": "optionId,label,locale"
+                                        "$select": "label,locale" // Select relevant fields for employee class
                                     },
                                     success: function (oEmployeeClass) {
-                                        console.log("Emp Class Results", oEmployeeClass);
-
-                                       resolve({
-                                            ...record,
-                                            employeeData: oEmployeeClass
-                                       });
-
-                                        
+                                        // Filter and map the results to only include labels with 'en_US' locale
+                                        const employeeData = oEmployeeClass.results
+                                            .filter(element => element.locale === 'en_US')
+                                            .map(element => element.label); // Extract the label
+        
+                                        // Resolve the promise with the updated record
+                                        resolve({
+                                            ...record, // Spread the original record
+                                            employeeData: employeeData // Add filtered employee data
+                                        });
                                     },
                                     error: function (oError) {
+                                        // Log and reject the promise if there's an error
                                         console.error("Error fetching employee class data:", oError);
                                         reject(oError);
                                     }
                                 });
                             });
                      
-                            // Return the mapped data
+                            // Wait for the employee class data and return the result with label and id
                             const [employeeClassResult] = await Promise.all([employeeClassData]);
-                            console.log(employeeClassResult.employeeData.optionId);
                             return {
-                                // optionId: employeeClassResult.employeeClassData.optionId,
-                                label: employeeClassResult.label,
-                                locale: employeeClassResult.locale
-
+                                id: record.id, // Retain the record's id
+                                label: employeeClassResult.employeeData[0] // Get the label from employeeData
                             };
                         } catch (error) {
+                            // Log and propagate any errors encountered during promise mapping
                             console.error("Error in promise mapping:", error);
-                            throw error; // Propagate the error to be caught by Promise.all
+                            throw error;
                         }
                     });
                      
+                    // Wait for all promises to resolve and set the data model for employee classes
                     Promise.all(aPromises)
                         .then((aCombinedResults) => {
-                            console.log("Combined Results:", aCombinedResults);
+                            // Set the combined results to a new JSON model and bind it to the view
                             that.getView().setModel(new sap.ui.model.json.JSONModel(aCombinedResults), "empClasses");
                         })
                         .catch((oError) => {
+                            // Log any errors encountered when resolving promises
                             console.error("Error resolving promises:", oError);
                         });
-                    
                 },
-                error: (oError) => console.error("Error", oError),
-        
-               
-            })
-
-        },
+                error: (oError) => console.error("Error", oError), // Log errors from the initial OData read
+            });
+        },   
 
        
 
