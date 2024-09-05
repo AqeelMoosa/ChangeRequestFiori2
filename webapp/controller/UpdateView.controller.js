@@ -26,6 +26,8 @@ sap.ui.define([
           //this.getOwnerComponent().getModel().metadataLoaded().then(this._onMetadataLoaded.bind(this));
 
           this.empClass();
+          this.empType();
+          this.getTypeandClass();
            
         },
 
@@ -51,7 +53,6 @@ sap.ui.define([
         // onNavBack: function () {
         //     var uRouter = sap.ui.core.UIComponent.getRouterFor(this);
         //     uRouter.navTo("home");
-        //     console.log(uRouter)
         // },
         
 
@@ -100,8 +101,6 @@ sap.ui.define([
             var sStartDate = this.getView().byId("txtStartDate").getText();
             var sPositionCode = sPosition.match(/\((\d+)\)/)[1];
             var DepartCode = depart.match(/\((\d+)\)/)[1];
-
-            console.log(DepartCode)
  
             var oDate = new Date(sStartDate);
  
@@ -112,10 +111,6 @@ sap.ui.define([
             var minutes = String(oDate.getMinutes()).padStart(2, '0');
             var seconds = String(oDate.getSeconds()).padStart(2, '0');
             var sFormattedStartDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-
-            console.log(oDate)
- 
-            console.log(sFormattedStartDate);
  
             oModel.metadataLoaded().then(function(){
                 var payload = {
@@ -138,7 +133,6 @@ sap.ui.define([
             
                     {
                         that.jobInfo();
-                        console.log("Department Updated")      
 
                         
                     },
@@ -163,6 +157,108 @@ sap.ui.define([
             })
         },
 
+        getTypeandClass: function () {
+            const that = this;
+            const oDataModel = this.getOwnerComponent().getModel();
+            // Retrieve the route parameters
+            var sUrl = window.location.href;
+            var index = sUrl.indexOf("update/");
+            var sEmpId = sUrl.substring(index + "update/".length);
+        
+            oDataModel.read(`/EmpJob`, {
+                urlParameters: {
+                    "$filter": `userId eq '${sEmpId}'`,
+                    "$select": "employmentType,employeeClass"
+                },
+                success: (oData) => {
+                    this._sEmployeeClassId = oData.results[0].employeeClass;
+                    this._sEmploymentTypeId = oData.results[0].employmentType;
+
+                    oDataModel.read(`/PicklistLabel(locale='en_US',optionId=${this._sEmploymentTypeId}L)`, {
+                        success: (oData) => {
+                            that.getView().byId("cmbxEmploymentType").setValue(oData.label);
+
+                            oDataModel.read(`/PicklistLabel(locale='en_US',optionId=${this._sEmployeeClassId}L)`,{
+                                success: (oData) => {
+                                    that.getView().byId("cmbxEmployeeClass").setValue(oData.label);
+                                },
+                                error: function(oError) {
+                                    console.error(oError);
+                                }
+                            });
+                        },
+                        error: function(oError) {
+                            console.error(oError);
+                        }
+                    });                    
+                },
+                error: (oError) => console.error("Error", oError)               
+            });
+        },
+
+        empType: function() {
+            const oDataModel = this.getOwnerComponent().getModel();
+            const that = this;
+
+            oDataModel.read("/Picklist('employmentType')/picklistOptions", {
+                urlParameters: {
+                    "$select" : "id,externalCode,picklistLabels"
+                },
+                success: (oData) => {
+                    const aPromises = oData.results.map(async (record) => {
+                        try {
+                            const iStartIndex = record.picklistLabels.__deferred.uri.indexOf("/odata/v2");
+                            const sShortenedUri = record.picklistLabels.__deferred.uri.substring(iStartIndex + "/odata/v2".length);
+
+                            const employeeTypeData = await new Promise((resolve, reject) => {
+                                oDataModel.read(sShortenedUri, {
+                                    urlParameters : {
+                                        "$select": "label,locale"
+                                    },
+                                    success: function(oEmployeeType) {                                        
+                                        const employeeData = oEmployeeType.results
+                                        .filter(element => element.locale === 'en_US')
+                                        .map(element => element.label);
+
+                                        resolve({
+                                            ...record,
+                                            employeeData: employeeData
+                                        });
+                                    },
+                                    error: function(oError) {
+                                        console.error("Error fetching employee type data:", oError);
+                                        reject(oError)
+                                    }
+                                });
+                            });
+
+                            const[employeeTypeResult] = await Promise.all([employeeTypeData]);
+                            return {
+                                id: record.id,
+                                label: employeeTypeResult.employeeData[0] 
+                            };
+                        }
+                        catch (error) {
+                            console.error("Error in promise mapping:", error);
+                            throw error;
+                        }
+                    });
+
+                    Promise.all(aPromises)
+                    .then((aCombinedResults) => {
+                        let oModel = new sap.ui.model.json.JSONModel(aCombinedResults);
+                        that.getView().setModel(oModel, "empTypes");
+                    })
+                    .catch((oError) => {
+                        // Log any errors encountered when resolving promises
+                        console.error("Error resolving promises:", oError);
+                });
+            },
+            error: (oError) => console.error("Error", oError),
+        });
+
+        },
+
         empClass: function() {
             const oDataModel = this.getOwnerComponent().getModel();
             const that = this;
@@ -179,6 +275,7 @@ sap.ui.define([
                             // Extract the URI for picklistLabels from the deferred object
                             const iStartIndex = record.picklistLabels.__deferred.uri.indexOf("/odata/v2");
                             const sShortenedUri = record.picklistLabels.__deferred.uri.substring(iStartIndex + "/odata/v2".length);
+                            
                      
                             // Fetch the employee class data for the current record
                             const employeeClassData = await new Promise((resolve, reject) => {
@@ -242,20 +339,18 @@ sap.ui.define([
 
 
         jobInfo: function() {
-
-            this._oBusyDialog.open()
-            setTimeout(function(){
-                
-           
             var that = this;
-            var oModel = this.getOwnerComponent().getModel();
-            var posdepart = this.getView().byId("txtDepartmentId").getText();
-            var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
-            var pos = this.getView().byId("txtPositionId").getText();
-            var posCode = pos.match(/\((\d+)\)/)[1];
-            var emp = this.getView().byId("txtEmpId").getText();
 
-            var ejStartDate = this.getView().byId("txtStartDate").getText();
+            sap.ui.core.BusyIndicator.show();
+
+            var oModel = that.getOwnerComponent().getModel();
+            var posdepart = that.getView().byId("txtDepartmentId").getText();
+            var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
+            var pos = that.getView().byId("txtPositionId").getText();
+            var posCode = pos.match(/\((\d+)\)/)[1];
+            var emp = that.getView().byId("txtEmpId").getText();
+
+            var ejStartDate = that.getView().byId("txtStartDate").getText();
             var ejDate = new Date(ejStartDate);
             var Eyear = ejDate.getFullYear();
             var Emonth = String(ejDate.getMonth() + 1).padStart(2, '0');
@@ -265,49 +360,45 @@ sap.ui.define([
             var Eseconds = String(ejDate.getSeconds()).padStart(2, '0');
             var ejFormattedStartDate = `${Eyear}-${Emonth}-${Eday}T${Ehours}:${Eminutes}:${Eseconds}`;
 
-            var workSchedule = this.getView().byId("txtWorkSchedule").getText();
+            var workSchedule = that.getView().byId("txtWorkSchedule").getText();
             var workSchedulecode = workSchedule.match(/\(([^)]+)\)/)[1];;
-            //var emptype = this.getView().byId("empType").getselectedItemId()
+            var empType = that.getView().byId("cmbxEmploymentType").getSelectedKey()
+            var empClass = that.getView().byId("cmbxEmployeeClass").getSelectedKey()
+           
+            oModel.read(`/EmpJob`, {
+                urlParameters: {
+                    "$filter": `userId eq '${emp}'`,
+                    "$select": "seqNumber"
+                },
+                success: (oData) => {
+                    const seqNumber = oData.results[0].seqNumber;
 
-            
-            
-                oModel.read("/EmpJob", {
-                    success: (oData) => {
-                        console.log(oData.results);
-                        console.log(workSchedulecode)
-                        console.log(ejStartDate)
-                    }}),
-    
                     oModel.metadataLoaded().then(function(){
                         var payload = {
                             "__metadata": {
-                                "uri": `EmpJob(startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
+                                "uri": `EmpJob(seqNumber=${seqNumber},startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
                                 "type": "SFOData.EmpJob"
                             },
                             
-                            //"employmentType": emptype,
+                            "employmentType": empType,
+                            "employeeClass": empClass,
                             "workscheduleCode":workSchedulecode,
                             "department": posDepartCode,
                             "position": posCode,
                             "eventReason": "TRANDEPT"
-                           
-                        };
+                        }
 
-                        
                         oModel.create("/upsert", payload, {
-                            success: function()
-                            {
+                            success: function() {
                                 sap.m.MessageBox.show("All updates complete! Record has been removed.", {
                                     icon: sap.m.MessageBox.Icon.SUCCESS,
-                                   title: "Success!"
-                               });
-                                console.log("Job Info Updated")
+                                    title: "Success!"
+                                });
 
                                 oModel.metadataLoaded().then(function(){
                                     var sUrl = window.location.href;
                                     var index = sUrl.indexOf("update/");
-                                    var sEmpId = sUrl.substring(index + "update/".length)
-                                    
+                                    var sEmpId = sUrl.substring(index + "update/".length);
                                     
                                     var payload2 = {
                                         "__metadata": {
@@ -318,30 +409,21 @@ sap.ui.define([
                                         "cust_WorkflowStatus":"Updated!"
                                     }
                                     
-                                    
-                                    
-                                oModel.create("/upsert", payload2, {
-                                    success: function()
-                                    {
-                                        
-                                        console.log("Status Updated")
-                                        that.setEmployeeModel()
-                                        that.onNavBack()
-                                        
-                                    },
-        
-                                    error(){
-                                        sap.m.MessageBox.show("Status could not be updated!", {
-                                            icon: sap.m.MessageBox.Icon.ERROR,
-                                            title: "Warning!"
-                                        });
-                                    }
-                                })
-        
-                                    
-                                })
-
-                                
+                                    oModel.create("/upsert", payload2, {
+                                        success: function()
+                                        {
+                                            that.setEmployeeModel();
+                                            that.onNavBack();
+                                        },
+            
+                                        error(){
+                                            sap.m.MessageBox.show("Status could not be updated!", {
+                                                icon: sap.m.MessageBox.Icon.ERROR,
+                                                title: "Warning!"
+                                            });
+                                        }
+                                    })    
+                                });
                             },
 
                             onNavBack: function () {
@@ -349,24 +431,18 @@ sap.ui.define([
                                 oRouter.navTo("home");
                             },
 
-
                             error(){
                                 sap.m.MessageBox.show("Employment Information could not be updated!", {
                                     icon: sap.m.MessageBox.Icon.ERROR,
                                     title: "Warning!"
-                                    
                                 });
                             }
                         })
-    
-                    
-                })
-
-                this._oBusyDialog.close();
-                console.log("Process Complete")
-            }.bind(this), 10000)
-
-            },
+                    });
+                    sap.ui.core.BusyIndicator.hide();
+                }  
+            });
+        },
 
             ManualStatusChange: function() {
                 var that = this;
@@ -396,9 +472,7 @@ sap.ui.define([
                             icon: sap.m.MessageBox.Icon.SUCCESS,
                            title: "Success!"
                        });
-                        
-                        console.log("Status Updated")
-                        
+                                                
                         that.setEmployeeModel()
                         that.onNavBack()
                         
@@ -432,7 +506,6 @@ sap.ui.define([
 _onRouteMatched1: function (oEvent) {
 
     let sModel = this.getView().getModel()
-    console.log(sModel)
 
     
     const oDataModel = this.getOwnerComponent().getModel();
@@ -451,30 +524,16 @@ _onRouteMatched1: function (oEvent) {
             this.byId("txtDepartmentId").setText(oData.cust_NewDepartment)
             this.byId("txtStartDate").setText(sFormattedDate)
             this.byId("txtWorkSchedule").setText(oData.cust_NewWorkSchedule)
+
+
             
         },
         error: (oError) => console.error("Error", oError),
 
+        
 
-        // oDataModel.read(`/EmpJob)
-
-
-
-       
     })
-
-    // oDataModel.read("https://apisalesdemo2.successfactors.eu/odata/v2/FODivision(externalCode='INSIDE_SALES',startDate=datetime'1990-01-01T00:00:00')", {
-    //     success: (oData) => {
-    //         console.log(oData.results);
-
-    //     }})
-
-
-    // urlParameters: {
-    //     "$expand": "cust_toDivision,cust_toLegalEntity",
-    //     "$filter": `(cust_toDivision/externalCode eq '${sDivisionId}') and (cust_toLegalEntity/externalCode eq '${sCompanyId}')`,
-    //     "$select": "externalCode,name_en_US,cust_toDivision/externalCode,cust_toLegalEntity/externalCode"
-    // },
+    
 
 },
 

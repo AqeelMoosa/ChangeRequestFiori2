@@ -64,19 +64,20 @@
                 
                 <Label text="Employment Type"  class="customFormLabel"/>
                 <ComboBox
+                id="cmbxEmploymentType"
 				items="{
-					path: '/EmpJob'
+					path: 'empTypes>/'
 				}">
-				<core:Item key="{employmentType}" class="{employmentType}" />
+				<core:Item key="{empTypes>id}" text="{empTypes>label}" />
 			</ComboBox>
 
 
             <Label text="Employee Class"  class="customFormLabel"/>
-                <ComboBox
+                <ComboBox id="cmbxEmployeeClass"
 				items="{
 					path: 'empClasses>/'
 				}">
-				<core:Item key="{empClasses>id}" text="{empClasses>label}" />
+				<core:Item key="{empClasses>id}" text="{empClasses>label}"/>
 			</ComboBox>
 
 
