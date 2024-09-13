@@ -2,8 +2,8 @@
     xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:smartForm="sap.ui.comp.smartform"
-	xmlns:smartField="sap.ui.comp.smartfield"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     xmlns:html="http://www.w3.org/1999/xhtml">
     <Page id="page1">
@@ -14,6 +14,17 @@
 				<ToolbarSpacer/>
 				<Title text="{i18n>uTitle}" level="H2"/>
 				<ToolbarSpacer/>
+                    <Button 
+                        text="Update EC Profile"
+                        press="onSubmit"
+                        icon="sap-icon://accept"
+                        width="200px" 
+                        class="customButton"
+                        type="Accept">
+                        <layoutData>
+                            <FlexItemData growFactor="1" />
+                        </layoutData>
+				    </Button>
                 <Button icon="sap-icon://edit-outside" type="Transparent" press="ManualChange" ariaLabelledBy="editButtonLabel" text="Navigate to Job Information"/>
                   <Button 
 						text="Manual Complete"
@@ -25,99 +36,130 @@
 						<FlexItemData growFactor="1" />
 					</layoutData>
 				</Button>
+
 			</Toolbar>
 
 		</customHeader>
     
         <content>
 
+        <VBox class="simple-forms sapUiSmallMargin">
+		<f:SimpleForm id="SimpleFormDisplay480_12120"
+			editable="false"
+			layout="ResponsiveGridLayout"
+			title="Employee Information"
+			labelSpanXL="4"
+			labelSpanL="4"
+			labelSpanM="12"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="0"
+			emptySpanL="0"
+			emptySpanM="0"
+			emptySpanS="0"
+			columnsXL="2"
+			columnsL="2"
+			columnsM="1"
+			singleContainerFullSize="false">
+			<f:content>
+				<core:Title text="Current Details" />
 
-
-        <!-- <VBox alignItems="Center" fitContainer="true" items="/Position">
-        
-        <Label text = "Position Code: "></Label>
-        <Text id="txtPosCode"></Text>
-        
-        </VBox> -->
-
-
-
-            <form:SimpleForm>
-
-                
-
-             <Label text="Employee ID " class="customFormLabel" />
+                <Label text="Employee ID " class="customFormLabel" />
                 <Text id="txtEmpId" class="customFormText"/>
 
-                <Label text="Position " class="customFormLabel" />
+				<Label text="Current Position " class="customFormLabel" />
                 <Text id="txtPositionId" class="customFormText"/>
-
-                <Label text="Start Date" class="customFormLabel"/>
+			</f:content>
+		</f:SimpleForm>
+		<f:SimpleForm id="SimpleFormDisplay480_12120-2"
+			editable="false"
+			layout="ResponsiveGridLayout"
+			labelSpanXL="4"
+			labelSpanL="4"
+			labelSpanM="12"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="0"
+			emptySpanL="0"
+			emptySpanM="0"
+			emptySpanS="0"
+			columnsXL="2"
+			columnsL="2"
+			columnsM="1"
+			singleContainerFullSize="false">
+			<f:content>
+				<core:Title text="New Details" />
+				<Label text="Start Date" class="customFormLabel"/>
                 <Text id="txtStartDate" class="customFormText"/>
             
-                <Label text="New Department "  class="customFormLabel"/>
+                <Label text="New Department"  class="customFormLabel"/>
                 <Text id="txtDepartmentId" class="customFormText"/>
 
                 <Label text="New Work Schedule"  class="customFormLabel"/>
                 <Text id="txtWorkSchedule" class="customFormText"/>
 
-                
-                <Label text="Employment Type"  class="customFormLabel"/>
-                <ComboBox
-                id="cmbxEmploymentType"
-				items="{
-					path: 'empTypes>/'
-				}">
-				<core:Item key="{empTypes>id}" text="{empTypes>label}" />
-			</ComboBox>
+                <Label id="lblManager" text="New Manager"  class="customFormLabel" visible="false"/>
+                <Text id="txtManager" class="customFormText" visible="false"/>
 
+                <Label id="lblNewPosition" text="New Position"  class="customFormLabel" visible="false" />
+                <Text id="txtNewPosition" class="customFormText" visible="false"/>                 
+			</f:content>
+		</f:SimpleForm>
+        <f:SimpleForm id="SimpleFormDisplay480_12120-3" class="simple-form-optional"
+			editable="false"
+			layout="ResponsiveGridLayout"
+			labelSpanXL="4"
+			labelSpanL="4"
+			labelSpanM="12"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="0"
+			emptySpanL="0"
+			emptySpanM="0"
+			emptySpanS="0"
+			columnsXL="2"
+			columnsL="2"
+			columnsM="1"
+			singleContainerFullSize="false">
 
-            <Label text="Employee Class"  class="customFormLabel"/>
-                <ComboBox id="cmbxEmployeeClass"
-				items="{
-					path: 'empClasses>/'
-				}">
-				<core:Item key="{empClasses>id}" text="{empClasses>label}"/>
-			</ComboBox>
+			<f:content>
+             <core:Title text="Optional Updates" />
+                        <Label text="Employment Type"  class="custom-form-label"/>
+                        <ComboBox
+                            id="cmbxEmploymentType"
+                            items="{
+                                path: 'empTypes>/'
+                            }"
+                            width="200px">
+                            <core:Item key="{empTypes>id}" text="{empTypes>label}" />
+                        </ComboBox>
+                    
 
+                        <Label text="Employee Class"  class="custom-form-label"/>
+                        <ComboBox id="cmbxEmployeeClass"
+                            items="{
+                                path: 'empClasses>/'
+                            }"
+                            width="200px">
+                            <core:Item key="{empClasses>id}" text="{empClasses>label}"/>
+                        </ComboBox>
+                    
 
-             <Label text="Regular/Temporary"  class="customFormLabel"/>
-                <ComboBox
-				items="{
-					path: '/EmpJob'
-				}">
-				<core:Item key="{regularTemp}" text="{regularTemp}"/>
-			</ComboBox>
-                
+                        <Label text="Regular/Temporary"  class="custom-form-label"/>
+                        <ComboBox id="cmbxRegTemp"
+                            items="{
+                                path: 'reg-temp>/'
+                            }"
+                            width="200px">
+                            <core:Item key="{reg-temp>id}" text="{reg-temp>label}"/>
+                        </ComboBox>
+                    
 
-                
-                <Button 
-						text="Update EC Profile"
-						press="onSubmit"
-                        icon="sap-icon://accept"
-                        width="200px" 
-                        class="customButton"
-                        type="Accept">
-					<layoutData>
-						<FlexItemData growFactor="1" />
-					</layoutData>
-				</Button>
+			</f:content>
+		</f:SimpleForm>
 
-                <!-- <Button 
-						text="Manual Change"
-						press="ManualChange"
-                        icon="sap-icon://edit-outside"
-                        width="200px" 
-                        class="customButton">
-					<layoutData>
-						<FlexItemData growFactor="1" />
-					</layoutData>
-				</Button> -->
-
-                
-              
-            
-            </form:SimpleForm>
+        
+	</VBox>
         </content>
     </Page>
 </mvc:View>

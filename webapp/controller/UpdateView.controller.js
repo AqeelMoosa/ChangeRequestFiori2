@@ -28,6 +28,7 @@ sap.ui.define([
           this.empClass();
           this.empType();
           this.getTypeandClass();
+          this.getRegOrTemp();
            
         },
 
@@ -168,11 +169,12 @@ sap.ui.define([
             oDataModel.read(`/EmpJob`, {
                 urlParameters: {
                     "$filter": `userId eq '${sEmpId}'`,
-                    "$select": "employmentType,employeeClass"
+                    "$select": "employmentType,employeeClass,regularTemp"
                 },
                 success: (oData) => {
                     this._sEmployeeClassId = oData.results[0].employeeClass;
                     this._sEmploymentTypeId = oData.results[0].employmentType;
+                    this._sRegOrTemp = oData.results[0].regularTemp;
 
                     oDataModel.read(`/PicklistLabel(locale='en_US',optionId=${this._sEmploymentTypeId}L)`, {
                         success: (oData) => {
@@ -181,6 +183,12 @@ sap.ui.define([
                             oDataModel.read(`/PicklistLabel(locale='en_US',optionId=${this._sEmployeeClassId}L)`,{
                                 success: (oData) => {
                                     that.getView().byId("cmbxEmployeeClass").setValue(oData.label);
+
+                                    oDataModel.read(`/PicklistLabel(locale='en_US', optionId=${this._sRegOrTemp}L)`,{
+                                        success: (oData) => {
+                                            that.getView().byId("cmbxRegTemp").setValue(oData.label);
+                                        }
+                                    })
                                 },
                                 error: function(oError) {
                                     console.error(oError);
@@ -330,13 +338,79 @@ sap.ui.define([
                 error: (oError) => console.error("Error", oError), // Log errors from the initial OData read
             });
         },   
-
-       
-
-
         
 
+        getRegOrTemp: function() {
+            const oDataModel = this.getOwnerComponent().getModel();
+            const that = this;
 
+            oDataModel.read("/Picklist('regular-temp')/picklistOptions", {
+                urlParameters: {
+                    "$select": "id,picklistLabels" // Select relevant fields
+                },
+                success: (oData) => {
+                    // Map over the results and create an array of promises
+                    const aPromises = oData.results.map(async (record) => {
+                        try {
+                            // Extract the URI for picklistLabels from the deferred object
+                            const iStartIndex = record.picklistLabels.__deferred.uri.indexOf("/odata/v2");
+                            const sShortenedUri = record.picklistLabels.__deferred.uri.substring(iStartIndex + "/odata/v2".length);
+                            
+                     
+                            // Fetch the employee class data for the current record
+                            const employeeClassData = await new Promise((resolve, reject) => {
+                                oDataModel.read(sShortenedUri, {
+                                    urlParameters: {
+                                        "$select": "label,locale" // Select relevant fields for employee class
+                                    },
+                                    success: function (oEmployeeClass) {
+                                        // Filter and map the results to only include labels with 'en_US' locale
+                                        const employeeData = oEmployeeClass.results
+                                            .filter(element => element.locale === 'en_US')
+                                            .map(element => element.label); // Extract the label
+        
+                                        // Resolve the promise with the updated record
+                                        resolve({
+                                            ...record, // Spread the original record
+                                            employeeData: employeeData // Add filtered employee data
+                                        });
+                                    },
+                                    error: function (oError) {
+                                        // Log and reject the promise if there's an error
+                                        console.error("Error fetching reg/temp data:", oError);
+                                        reject(oError);
+                                    }
+                                });
+                            });
+                     
+                            // Wait for the employee class data and return the result with label and id
+                            const [employeeClassResult] = await Promise.all([employeeClassData]);
+                            return {
+                                id: record.id, // Retain the record's id
+                                label: employeeClassResult.employeeData[0] // Get the label from employeeData
+                            };
+                        } catch (error) {
+                            // Log and propagate any errors encountered during promise mapping
+                            console.error("Error in promise mapping:", error);
+                            throw error;
+                        }
+                    });
+                     
+                    // Wait for all promises to resolve and set the data model for employee classes
+                    Promise.all(aPromises)
+                        .then((aCombinedResults) => {
+                            // Set the combined results to a new JSON model and bind it to the view
+                            that.getView().setModel(new sap.ui.model.json.JSONModel(aCombinedResults), "reg-temp");
+                        })
+                        .catch((oError) => {
+                            // Log any errors encountered when resolving promises
+                            console.error("Error resolving promises:", oError);
+                        });
+                },
+                error: (oError) => console.error("Error", oError), // Log errors from the initial OData read
+            });
+
+        },
 
         jobInfo: function() {
             var that = this;
@@ -345,9 +419,9 @@ sap.ui.define([
 
             var oModel = that.getOwnerComponent().getModel();
             var posdepart = that.getView().byId("txtDepartmentId").getText();
-            var posDepartCode = posdepart.match(/\((\d+)\)/)[1];
+            var posDepartCode = posdepart.match(/\((\d+)\)(?!.*\(\d+\))/)[1];;
             var pos = that.getView().byId("txtPositionId").getText();
-            var posCode = pos.match(/\((\d+)\)/)[1];
+            var posCode = pos.match(/\(([^)]+)\)/)[1];
             var emp = that.getView().byId("txtEmpId").getText();
 
             var ejStartDate = that.getView().byId("txtStartDate").getText();
@@ -361,9 +435,15 @@ sap.ui.define([
             var ejFormattedStartDate = `${Eyear}-${Emonth}-${Eday}T${Ehours}:${Eminutes}:${Eseconds}`;
 
             var workSchedule = that.getView().byId("txtWorkSchedule").getText();
-            var workSchedulecode = workSchedule.match(/\(([^)]+)\)/)[1];;
+            var workSchedulecode = workSchedule.match(/\(([^)]+)\)/)[1];
             var empType = that.getView().byId("cmbxEmploymentType").getSelectedKey()
             var empClass = that.getView().byId("cmbxEmployeeClass").getSelectedKey()
+            var regTemp = that.getView().byId("cmbxRegTemp").getSelectedKey()
+        
+            const sLocation = this._NewLocation;
+            const sCompany = this._NewCompany;
+            const sDivision = this._NewDivision;
+            const sCostCenter = this._NewCostCenter;
            
             oModel.read(`/EmpJob`, {
                 urlParameters: {
@@ -374,19 +454,52 @@ sap.ui.define([
                     const seqNumber = oData.results[0].seqNumber;
 
                     oModel.metadataLoaded().then(function(){
-                        var payload = {
-                            "__metadata": {
-                                "uri": `EmpJob(seqNumber=${seqNumber},startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
-                                "type": "SFOData.EmpJob"
-                            },
-                            
-                            "employmentType": empType,
-                            "employeeClass": empClass,
-                            "workscheduleCode":workSchedulecode,
-                            "department": posDepartCode,
-                            "position": posCode,
-                            "eventReason": "TRANDEPT"
+                        let payload = {};
+
+                        if (that._NewManager) {
+                            var sManager = that.getView().byId("txtManager").getText();
+                            var newPos = that.getView().byId("txtNewPosition").getText();
+
+                            var newPosCode = newPos.match(/\(([^)]+)\)/)[1];
+                            var managerCode = sManager.match(/\(([^)]+)\)/)[1];
+
+                            payload = {
+                                "__metadata": {
+                                    "uri": `EmpJob(seqNumber=${seqNumber}L,startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
+                                    "type": "SFOData.EmpJob"
+                                },
+                                
+                                "location": sLocation,
+                                "company": sCompany,
+                                "division": sDivision,
+                                "costCenter": sCostCenter,
+                                "managerId" : managerCode,
+                                "regularTemp": regTemp,
+                                "employmentType": empType,
+                                "employeeClass": empClass,
+                                "workscheduleCode":workSchedulecode,
+                                "department": posDepartCode,
+                                "position": newPosCode,
+                                "eventReason": "TRANDEPT",  
+                            }
+
+                        } else {
+                            payload = {
+                                "__metadata": {
+                                    "uri": `EmpJob(seqNumber=${seqNumber}L,startDate=datetime'${ejFormattedStartDate}',userId='${emp}')`,
+                                    "type": "SFOData.EmpJob"
+                                },
+                                
+                                "regularTemp": regTemp,
+                                "employmentType": empType,
+                                "employeeClass": empClass,
+                                "workscheduleCode":workSchedulecode,
+                                "department": posDepartCode,
+                                "position": posCode,
+                                "eventReason": "TRANDEPT",
+                            }
                         }
+
 
                         oModel.create("/upsert", payload, {
                             success: function() {
@@ -503,11 +616,7 @@ sap.ui.define([
             
  
 // Option 2
-_onRouteMatched1: function (oEvent) {
-
-    let sModel = this.getView().getModel()
-
-    
+_onRouteMatched1: function (oEvent) {    
     const oDataModel = this.getOwnerComponent().getModel();
     // Retrieve the route parameters
     var sUrl = window.location.href;
@@ -516,6 +625,30 @@ _onRouteMatched1: function (oEvent) {
  
     oDataModel.read(`/cust_EmployeeShiftChange('${sEmpId}')`, {
         success: (oData) => {
+            this._NewManager = oData.cust_NewManager;
+
+            console.log("New Manager: ", this._NewManager);
+
+            if (this._NewManager != null) {
+                this.byId("txtManager").setText(this._NewManager);
+                this.byId("txtManager").setVisible(true);
+                this.byId("lblManager").setVisible(true);
+
+                this.byId("txtNewPosition").setText(oData.cust_NewPosition);
+                this.byId("txtNewPosition").setVisible(true);
+                this.byId("lblNewPosition").setVisible(true);
+
+                this._NewLocation = oData.cust_NewLocation;
+                this._NewCompany = oData.cust_NewCompany;
+                this._NewDivision = oData.cust_NewDivision;
+                this._NewCostCenter = oData.cust_NewCostCenter;
+            } else {
+                this.byId("txtManager").setVisible(false);
+                this.byId("lblManager").setVisible(false);
+
+                this.byId("txtNewPosition").setVisible(false);
+                this.byId("lblNewPosition").setVisible(false);
+            }
 
             var sFormattedDate = this.dateFormatter(oData.cust_StartDate);
 
@@ -523,30 +656,21 @@ _onRouteMatched1: function (oEvent) {
             this.byId("txtPositionId").setText(oData.cust_CurrentPosition)
             this.byId("txtDepartmentId").setText(oData.cust_NewDepartment)
             this.byId("txtStartDate").setText(sFormattedDate)
-            this.byId("txtWorkSchedule").setText(oData.cust_NewWorkSchedule)
-
-
-            
+            this.byId("txtWorkSchedule").setText(oData.cust_NewWorkSchedule)           
         },
         error: (oError) => console.error("Error", oError),
-
-        
-
-    })
-    
-
+    });
 },
 
 
-        _onObjectMatched: function (oEvent) {
-            // Get the order ID from the route parameters
-            var sEmpId = oEvent.getParameter("arguments").empId;
+    _onObjectMatched: function (oEvent) {
+        // Get the order ID from the route parameters
+        var sEmpId = oEvent.getParameter("arguments").empId;
 
-                var sPath = "/cust_EmployeeShiftChange("+ {sEmpId} +")";
-                this.getView().bindElement({
-                    path: sPath
-                });
-            },
-        
+            var sPath = "/cust_EmployeeShiftChange("+ {sEmpId} +")";
+            this.getView().bindElement({
+                path: sPath
+            });
+        },   
     });
 })
